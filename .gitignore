@@ -22,7 +22,8 @@ process-miner.cabal
 
 ## Dont push log files ##
 datalogs/*
-!datalogs/installlogs.sh
+!datalogs/install.sh
+!datalogs/delete.sh
 
 ## react ##
 .DS_*
