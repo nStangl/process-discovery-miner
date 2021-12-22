@@ -18,6 +18,7 @@ cabal.sandbox.config
 *.keter
 *~
 \#*
+process-miner.cabal
 
 ### react ###
 .DS_*
