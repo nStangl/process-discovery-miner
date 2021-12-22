@@ -27,8 +27,9 @@ logs
 **/*.backup.*
 **/*.back.*
 
-node_modules
-bower_components
+frontend/node_modules
+frontend/bower_components
+frontend/build
 
 *.sublime*
 
