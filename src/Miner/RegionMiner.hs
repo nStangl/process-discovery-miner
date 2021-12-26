@@ -1,4 +1,4 @@
-module RegionMiner
+module Miner.RegionMiner
     ( regionMiner
     ) where
 

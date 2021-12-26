@@ -1,55 +1,12 @@
-module AlphaMiner where
+module Miner.AlphaMiner where
+
+import Types
 
 import qualified Data.Set as Set
-import Data.Maybe
 
 import Data.Tuple (swap)
 import Data.List
 import Data.Bifunctor
-import Text.XML.Light
-
-type EventLog = [Trace]
-type Trace = [Activity]
-type Activity = String
-type Transition = ([Activity], [Activity])
-
-
-xmlTest :: String -> IO ()
-xmlTest path = do
-    s <- readFile path
-    case parseXMLDoc s of
-        Nothing -> error "Failed to parse xml"
-        Just doc -> do
-
-            let traces = findTraces doc
-            let eventss = map findEvents traces
-            let xs = map (mapMaybe filterEventForActivity) eventss
-
-            let set = Set.fromList xs
-            let elog = Set.toList set
-            let xls = xLBruteForceLists xs
-            print "Reading set:"
-            print elog
-            putStrLn "\nResulting x_L:"
-            print xls
-            putStrLn "\nResulting petri net (without start and end transitions):"
-            print $ yLLists xls
-            putStrLn "\nAll transitions incl. start and end transitions:"
-            print $ alphaMiner elog
-
-findTraces :: Element -> [Element]
-findTraces = filterChildren (\e -> qName (elName e) == "trace")
-
-findEvents :: Element -> [Element]
-findEvents = filterChildren (\e -> qName (elName e) == "event")
-
-filterEventForActivity :: Element -> Maybe String
-filterEventForActivity e = line e >>= value
-    where
-        line = filterChild (\x -> qName (elName x) == "string" && attrVal (head (elAttribs x)) == "concept:name")
-
-value :: Element -> Maybe String
-value e = Just $ attrVal (elAttribs e !! 1)
 
 footprintMatrix :: EventLog -> String
 footprintMatrix = undefined
@@ -110,12 +67,27 @@ yLLists xs = xs \\ toRemove
         toRemove = concatMap subset xs
 
 alphaMiner :: EventLog -> [Transition]
-alphaMiner elog = (start ++ end) ++ transitions
+alphaMiner elog = start ++ transitions ++ end
     where
-        start = map (\x -> (["__start__"], [x])) (Set.toList (tI elog))
-        end = map (\x -> ([x], ["__end__"])) (Set.toList (tO elog))
+        start = map (\x -> (["start"], [x])) (Set.toList (tI elog))
+        end = map (\x -> ([x], ["end"])) (Set.toList (tO elog))
         transitions = yLLists $ xLBruteForceLists elog
 
+{- Used for generating JSON -}
+{-
+expNodesEdges :: EventLog -> [Transition] -> ([Node], [Edge])
+expNodesEdges elog xs = (nodes, edges)
+    where
+        nodes = Node {nodeID="start", shape="ellipse"} : Node {nodeID="end", shape="ellipse"} : map (\x -> Node {nodeID = x, shape = "rectangle"} ) (Set.toList (tL elog))
+        edges = undefined
+        edges2 = undefined
+
+auxexp :: Transition -> [Int] -> [Edge]
+auxexp (["start"], ["end"]) i = [Edge {edgeID="p" ++ show (head i), source="start", target="end", arrow="triangle"}]
+auxexp (["start"], rs) i = map (\x -> Edge {edgeID="p" ++ show (head i), source="start", target=x, arrow="triangle"}) rs
+auxexp (ls, ["end"]) i = undefined
+auxexp (ls, rs) i = undefined 
+-}
 
 {-------------------------------- General auxiliary functions ------------------------------------------}
 
