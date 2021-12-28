@@ -7,6 +7,7 @@ import qualified Data.Set as Set
 import Data.Tuple (swap)
 import Data.List
 import Data.Bifunctor
+import IOHelper.XESReader (readXES)
 
 footprintMatrix :: EventLog -> String
 footprintMatrix = undefined
@@ -73,21 +74,49 @@ alphaMiner elog = start ++ transitions ++ end
         end = map (\x -> ([x], ["end"])) (Set.toList (tO elog))
         transitions = yLLists $ xLBruteForceLists elog
 
-{- Used for generating JSON -}
-{-
-expNodesEdges :: EventLog -> [Transition] -> ([Node], [Edge])
-expNodesEdges elog xs = (nodes, edges)
-    where
-        nodes = Node {nodeID="start", shape="ellipse"} : Node {nodeID="end", shape="ellipse"} : map (\x -> Node {nodeID = x, shape = "rectangle"} ) (Set.toList (tL elog))
-        edges = undefined
-        edges2 = undefined
 
-auxexp :: Transition -> [Int] -> [Edge]
-auxexp (["start"], ["end"]) i = [Edge {edgeID="p" ++ show (head i), source="start", target="end", arrow="triangle"}]
-auxexp (["start"], rs) i = map (\x -> Edge {edgeID="p" ++ show (head i), source="start", target=x, arrow="triangle"}) rs
-auxexp (ls, ["end"]) i = undefined
-auxexp (ls, rs) i = undefined 
--}
+expToCytoGraph :: EventLog -> [Transition] -> CytoGraph
+expToCytoGraph elog ts = CytoGraph nodes' edges'
+    where
+        nodes1 = CytoNode "start" "ellipse" : CytoNode "end" "ellipse" : map (`CytoNode` "rectangle") (Set.toList (tL elog))
+        (startend, ts') = partition containsStartEnd ts
+        edges1 = map transformStartEndEdges startend
+        edges2Fs = fmap transformEdges ts' 
+        (edges2, nodes2) = unzip $ zipWith (\ f i -> f i) edges2Fs [1..]
+        nodes' =  nodes1 ++ nodes2
+        edges'' = concat (edges1 ++ edges2)
+        edges' = fmap (\(e, i) -> e { edgeID = "e" ++ show i}) (zip edges'' ([0..] :: [Integer]))
+
+testexp :: String -> IO ()
+testexp path = do
+    mlog <- readXES path
+    case mlog of
+        Just l -> do {-return $ nodes $ expToCytoGraph l (alphaMiner l)-}
+            let cytoGraph = expToCytoGraph l (alphaMiner l)
+            putStrLn "CytoGraph"
+            putStrLn "Nodes:"
+            mapM_ print (nodes cytoGraph)
+            putStrLn "\nEdges:"
+            mapM_ print (edges cytoGraph)
+        Nothing -> undefined
+
+containsStartEnd :: Transition -> Bool
+containsStartEnd (["start"], _) = True
+containsStartEnd (_, ["end"]) = True
+containsStartEnd _ = False
+
+transformStartEndEdges :: Transition -> [CytoEdge]
+transformStartEndEdges (["start"], rs) = map (\r -> CytoEdge "__" "start" r "triangle") rs
+transformStartEndEdges (ls, ["end"]) = map (\l -> CytoEdge "__" l "end" "triangle") ls
+transformStartEndEdges _ = undefined
+
+transformEdges :: Transition -> Int -> ([CytoEdge], CytoNode)
+transformEdges (ls, rs) i =
+    let place = "p" ++ show i
+    in
+        (nub (concat [ [CytoEdge "__" l place "triangle" , CytoEdge "__" place r "triangle"] | l <- ls, r <- rs])
+        , CytoNode place "ellipse")
+
 
 {-------------------------------- General auxiliary functions ------------------------------------------}
 
