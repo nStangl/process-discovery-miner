@@ -1,14 +1,20 @@
 module IOHelper.XESReader
     (
-        xmlTest, readXES
+         readXES
     ) where
 
-import Miner.AlphaMiner
-import qualified Data.Set as Set
+
 import Text.XML.Light
+    ( parseXMLDoc,
+      filterChild,
+      filterChildren,
+      Attr(attrVal),
+      Element(elName, elAttribs),
+      QName(qName) )
 import Data.Maybe
 import Types ( EventLog )
 
+{-
 xmlTest :: String -> IO ()
 xmlTest path = do
     s <- readFile path
@@ -31,12 +37,13 @@ xmlTest path = do
             print $ yLLists xls
             putStrLn "\nAll transitions incl. start and end transitions:"
             print $ alphaMiner elog
+-}
 
 readXES :: String -> IO (Maybe EventLog)
 readXES path = do
     s <- readFile path
     case parseXMLDoc s of
-        Nothing -> pure Nothing
+        Nothing -> return Nothing
         Just doc -> do
             let xs = map (mapMaybe filterEventForActivity . findEvents) (findTraces doc)
             return $ Just xs

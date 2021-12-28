@@ -1,15 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
-module Types 
-    (
-        Activity,
-        Trace,
-        EventLog,
-        Transition,
-        CytoNode (..),
-        CytoEdge (..),
-        CytoGraph (..),
-        graph
-    ) where
+module Types
+     where
 
 import Data.Aeson
 import Control.Applicative
@@ -80,9 +71,23 @@ graph = CytoGraph {
         CytoNode { nodeID = "start", shape = "rectangle"},
         CytoNode { nodeID = "n1", shape = "ellipse"},
         CytoNode { nodeID = "end", shape = "rectangle"}
-    ], 
+    ],
     edges = [
         CytoEdge {edgeID= "e1", source= "start", target= "n1", arrow= "triangle"},
         CytoEdge {edgeID= "e2", source= "n1", target= "end", arrow= "triangle"}
     ]
 }
+
+getNode :: CytoNode
+getNode  = CytoNode { nodeID = "start", shape = "rectangle"}
+
+decodeNode :: Maybe CytoNode
+decodeNode = decode "{\"data\":{\"shape\":\"rectangle\",\"id\":\"start\"}}" :: Maybe CytoNode
+
+perPrint :: IO ()
+perPrint = print (encode getNode)
+
+perPrint2 :: IO ()
+perPrint2 = print (encode graph)
+
+encGraph = encode graph

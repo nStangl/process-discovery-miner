@@ -1,6 +1,6 @@
 import * as React from 'react';
 import CytoscapeComponent from 'react-cytoscapejs';
-import testElements from './transitions2.json';
+import testElements from './myfile.json';
 import dagre from 'cytoscape-dagre';
 import cytoscape from 'cytoscape';
 // import cytoscapesvg from 'cytoscape-svg'; does not offer @types --> either define myself or use png
@@ -17,7 +17,7 @@ export default function Graph() {
                     nodeDimensionsIncludeLables: true };
 
     return <CytoscapeComponent 
-                elements={ testElements }
+                elements = {CytoscapeComponent.normalizeElements (testElements)}
                 style={ { width: '900px', height: '550px' } }
                 stylesheet={[
                     {
