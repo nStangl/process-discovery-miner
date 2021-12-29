@@ -65,3 +65,15 @@ sampleForm = renderBootstrap3 BootstrapBasicForm $ FileForm
 
 commentIds :: (Text, Text, Text)
 commentIds = ("js-commentForm", "js-createCommentTextarea", "js-commentList")
+
+
+getTestminerR :: Handler Html
+getTestminerR = do
+    (formWidget, formEnctype) <- generateFormPost sampleForm
+    let submission = Nothing :: Maybe FileForm
+        handlerName = "getTestminerR" :: Text
+    defaultLayout $ do
+        let (commentFormId, commentTextareaId, commentListId) = commentIds
+        aDomId <- newIdent
+        setTitle "Welcome to test page!"
+        $(widgetFile "homepage")
