@@ -35,6 +35,8 @@ logs
 frontend/node_modules
 frontend/bower_components
 frontend/build
+static/app/dist
+static/app/node_modules
 
 *.sublime*
 
