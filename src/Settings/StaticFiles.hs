@@ -3,8 +3,8 @@
 {-# LANGUAGE TemplateHaskell   #-}
 module Settings.StaticFiles where
 
-import Settings     (appStaticDir, compileTimeAppSettings)
-import Yesod.Static (staticFiles)
+-- import Settings     (appStaticDir, compileTimeAppSettings)
+import Yesod.Static (staticFilesList)
 
 -- This generates easy references to files in the static directory at compile time,
 -- giving you compile-time verification that referenced files exist.
@@ -19,4 +19,5 @@ import Yesod.Static (staticFiles)
 --
 --     StaticFile ["js", "script.js"] []
 
-staticFiles (appStaticDir compileTimeAppSettings)
+-- staticFiles (appStaticDir compileTimeAppSettings)
+staticFilesList "static" ["css/bootstrap.css", "app/dist/bundle.js"]

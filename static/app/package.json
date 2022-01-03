@@ -10,6 +10,7 @@
         "@mui/material": "^5.2.2",
         "@mui/styled-engine-sc": "^5.1.0",
         "@types/cytoscape": "^3.19.2",
+        "@types/html-webpack-plugin": "^3.2.6",
         "@types/react-dom": "latest",
         "cytoscape": "^3.20.0",
         "cytoscape-dagre": "^2.3.2",
@@ -45,7 +46,6 @@
         "@types/cytoscape-dagre": "^2.3.0",
         "@types/react": "^17.0.37",
         "@types/react-cytoscapejs": "^1.2.2",
-        "html-webpack-plugin": "^5.5.0",
         "ts-loader": "^9.2.6",
         "typescript": "^4.5.4",
         "webpack-cli": "^4.9.1"
