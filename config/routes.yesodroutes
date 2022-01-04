@@ -5,8 +5,11 @@
 
 /favicon.ico FaviconR GET
 /robots.txt RobotsR GET
+/bundle.js BundleJSR GET
+/manifest.json ManifestR GET
 
 / HomeR GET
+/althome AltHomeR GET
 
 /comments CommentR POST
 

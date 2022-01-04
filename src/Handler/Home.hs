@@ -15,32 +15,18 @@ data FileForm = FileForm
     , fileDescription :: Text
     }
 
--- This is a handler function for the GET request method on the HomeR
--- resource pattern. All of your resource patterns are defined in
--- config/routes.yesodroutes
---
--- The majority of the code you will write in Yesod lives in these handler
--- functions. You can spread them across multiple files if you are so
--- inclined, or create a single monolithic file.
-{-
-getHomeR :: Handler Html
-getHomeR = do
-    (formWidget, formEnctype) <- generateFormPost sampleForm
-    let submission = Nothing :: Maybe FileForm
-        handlerName = "getHomeR" :: Text
+
+getAltHomeR :: Handler Html
+getAltHomeR = do
     defaultLayout $ do
-        let (commentFormId, commentTextareaId, commentListId) = commentIds
-        aDomId <- newIdent
-        setTitle "Welcome To Yesod!"
-        $(widgetFile "homepage")
--}
+        setTitle "Welcome to test Page"
+        addScript $ StaticR dist_bundle_js
 
 getHomeR :: Handler Html
 getHomeR = do
     defaultLayout $ do
-        setTitle "Welcome to test Page"
-        addScript $ StaticR app_dist_bundle_js
-        
+        sendFile "text/html" "static/dist/index.html"
+
 
 sampleForm :: Form FileForm
 sampleForm = renderBootstrap3 BootstrapBasicForm $ FileForm

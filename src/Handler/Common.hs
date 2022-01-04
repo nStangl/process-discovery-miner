@@ -20,3 +20,11 @@ getFaviconR = do cacheSeconds $ 60 * 60 * 24 * 30 -- cache for a month
 getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain
                     $ toContent $(embedFile "config/robots.txt")
+
+getBundleJSR :: Handler TypedContent
+getBundleJSR = return $ TypedContent typeJavascript
+                      $ toContent $(embedFile "static/dist/bundle.js")
+
+getManifestR :: Handler TypedContent
+getManifestR = return $ TypedContent typeJson
+                      $ toContent $(embedFile "static/app/public/manifest.json")

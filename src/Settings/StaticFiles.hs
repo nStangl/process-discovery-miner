@@ -20,4 +20,4 @@ import Yesod.Static (staticFilesList)
 --     StaticFile ["js", "script.js"] []
 
 -- staticFiles (appStaticDir compileTimeAppSettings)
-staticFilesList "static" ["css/bootstrap.css", "app/dist/bundle.js"]
+staticFilesList "static" ["css/bootstrap.css", "dist/index.html", "dist/bundle.js"]
