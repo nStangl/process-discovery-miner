@@ -14,3 +14,6 @@
 /comments CommentR POST
 
 /testminer TestminerR GET
+
+/api/v1/alphaminer AlphaminerV1R POST
+/api/v1/regionminer RegionminerV1R POST

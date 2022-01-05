@@ -5,7 +5,7 @@ module Types
 import Data.Aeson
 import Control.Applicative
 import Data.Text ()
-
+import qualified Data.ByteString.Lazy as LBS
 
 type EventLog = [Trace]
 type Trace = [Activity]
@@ -90,4 +90,5 @@ perPrint = print (encode getNode)
 perPrint2 :: IO ()
 perPrint2 = print (encode graph)
 
+encGraph :: LBS.ByteString
 encGraph = encode graph

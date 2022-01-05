@@ -7,7 +7,7 @@ import qualified Data.Set as Set
 import Data.Tuple (swap)
 import Data.List
 import Data.Bifunctor
-import IOHelper.XESReader (readXES)
+import IOHelper.XESReader (readXESFile)
 
 footprintMatrix :: EventLog -> String
 footprintMatrix = undefined
@@ -89,7 +89,7 @@ expToCytoGraph elog ts = CytoGraph nodes' edges'
 
 testexp :: String -> IO ()
 testexp path = do
-    mlog <- readXES path
+    mlog <- readXESFile path
     case mlog of
         Just l -> do {-return $ nodes $ expToCytoGraph l (alphaMiner l)-}
             let cytoGraph = expToCytoGraph l (alphaMiner l)

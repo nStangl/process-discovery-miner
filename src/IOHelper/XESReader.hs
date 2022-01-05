@@ -1,6 +1,9 @@
 module IOHelper.XESReader
     (
-         readXES
+         readXESFile,
+         readXES,
+         readBSXES,
+         readLBSXES
     ) where
 
 
@@ -12,8 +15,9 @@ import Text.XML.Light
       Element(elName, elAttribs),
       QName(qName) )
 import Data.Maybe
-import Types ( EventLog )
-
+import Types
+import Import (ByteString)
+import qualified Data.ByteString.Lazy as LBS
 {-
 xmlTest :: String -> IO ()
 xmlTest path = do
@@ -39,14 +43,36 @@ xmlTest path = do
             print $ alphaMiner elog
 -}
 
-readXES :: String -> IO (Maybe EventLog)
-readXES path = do
+readXESFile :: String -> IO (Maybe EventLog)
+readXESFile path = do
     s <- readFile path
-    case parseXMLDoc s of
-        Nothing -> return Nothing
+    return $ readXES s
+
+
+readXES :: String -> Maybe EventLog
+readXES raw = do
+    case parseXMLDoc raw of
+        Nothing -> Nothing
         Just doc -> do
             let xs = map (mapMaybe filterEventForActivity . findEvents) (findTraces doc)
-            return $ Just xs
+            Just xs
+
+readBSXES :: ByteString -> Maybe EventLog
+readBSXES rawbs = do
+    case parseXMLDoc rawbs of
+        Nothing -> Nothing
+        Just doc -> do
+            let xs = map (mapMaybe filterEventForActivity . findEvents) (findTraces doc)
+            Just xs
+
+readLBSXES :: LBS.ByteString -> Maybe EventLog
+readLBSXES raw = do
+    case parseXMLDoc raw of
+        Nothing -> Nothing
+        Just doc -> do
+            let xs = map (mapMaybe filterEventForActivity . findEvents) (findTraces doc)
+            Just xs
+
 
 findTraces :: Element -> [Element]
 findTraces = filterChildren (\e -> qName (elName e) == "trace")
