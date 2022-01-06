@@ -1,10 +1,5 @@
 module IOHelper.XESReader
-    (
-         readXESFile,
-         readXES,
-         readBSXES,
-         readLBSXES
-    ) where
+    where
 
 
 import Text.XML.Light
@@ -14,10 +9,10 @@ import Text.XML.Light
       Attr(attrVal),
       Element(elName, elAttribs),
       QName(qName) )
-import Data.Maybe
+import Data.Maybe ( mapMaybe )
 import Types
-import Import (ByteString)
-import qualified Data.ByteString.Lazy as LBS
+import Text.XML.Light.Lexer (XmlSource)
+
 {-
 xmlTest :: String -> IO ()
 xmlTest path = do
@@ -30,8 +25,7 @@ xmlTest path = do
             let eventss = map findEvents traces
             let xs = map (mapMaybe filterEventForActivity) eventss
 
-            let set = Set.fromList xs
-            let elog = Set.toList set
+    
             let xls = xLBruteForceLists xs
             print "Reading set:"
             print elog
@@ -48,31 +42,21 @@ readXESFile path = do
     s <- readFile path
     return $ readXES s
 
-
-readXES :: String -> Maybe EventLog
-readXES raw = do
+readXES :: XmlSource s => s-> Maybe EventLog
+readXES raw =
     case parseXMLDoc raw of
         Nothing -> Nothing
         Just doc -> do
-            let xs = map (mapMaybe filterEventForActivity . findEvents) (findTraces doc)
-            Just xs
+            let traces = findTraces doc
 
-readBSXES :: ByteString -> Maybe EventLog
-readBSXES rawbs = do
-    case parseXMLDoc rawbs of
-        Nothing -> Nothing
-        Just doc -> do
-            let xs = map (mapMaybe filterEventForActivity . findEvents) (findTraces doc)
-            Just xs
+            if isLifecycleExtension doc
+                then Just $ map ((mapMaybe getActivityFromEvent . mapMaybe filterEventForLifecycle) . findEvents) traces
+                else Just $ map (mapMaybe getActivityFromEvent . findEvents) traces 
+            
 
-readLBSXES :: LBS.ByteString -> Maybe EventLog
-readLBSXES raw = do
-    case parseXMLDoc raw of
-        Nothing -> Nothing
-        Just doc -> do
-            let xs = map (mapMaybe filterEventForActivity . findEvents) (findTraces doc)
-            Just xs
-
+-- | Checks if the lifecycle extension is being set
+isLifecycleExtension :: Element -> Bool
+isLifecycleExtension _ = True
 
 findTraces :: Element -> [Element]
 findTraces = filterChildren (\e -> qName (elName e) == "trace")
@@ -80,10 +64,20 @@ findTraces = filterChildren (\e -> qName (elName e) == "trace")
 findEvents :: Element -> [Element]
 findEvents = filterChildren (\e -> qName (elName e) == "event")
 
-filterEventForActivity :: Element -> Maybe String
-filterEventForActivity e = line e >>= value
+getActivityFromEvent :: Element -> Maybe String
+getActivityFromEvent e = line e >>= value
     where
+        value :: Element -> Maybe String
+        value ele = Just $ attrVal (elAttribs ele !! 1)
         line = filterChild (\x -> qName (elName x) == "string" && attrVal (head (elAttribs x)) == "concept:name")
 
-value :: Element -> Maybe String
-value e = Just $ attrVal (elAttribs e !! 1)
+-- | Returns events where if 'lifecycle:transition' exists it is set to 'complete'
+filterEventForLifecycle :: Element -> Maybe Element
+filterEventForLifecycle eve = case line eve of
+                                -- 'lifecycle:transition' does not exist, return event
+                                Nothing -> Just eve
+                                -- 'lifecycle:transition' does exist, return when value is 'complete'
+                                Just lifeLine-> if attrVal (elAttribs lifeLine !! 1) == "complete" then Just eve else Nothing
+    where
+        line = filterChild (\e -> qName (elName e) == "string" && attrVal (head (elAttribs e)) == "lifecycle:transition")
+
