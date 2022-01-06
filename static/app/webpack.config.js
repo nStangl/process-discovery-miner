@@ -24,7 +24,7 @@ module.exports = {
     new HtmlWebpackPlugin(
       {
       title: 'Application name',
-      template: './public/index.html'
+      template: './src/index.html'
       }
     )
   ]
