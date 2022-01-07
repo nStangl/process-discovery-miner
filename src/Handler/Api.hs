@@ -14,13 +14,17 @@ import Miner.AlphaMiner
 import Miner.RegionMiner ()
 import IOHelper.XESReader ( readXES )
 
+import Control.Concurrent ( threadDelay )
+
 
 
 postAlphaminerV1R :: Handler Value
 postAlphaminerV1R =  do
     req <-  waiRequest
+
+    _ <- liftIO $ threadDelay 4000000
+
     body <- liftIO $ strictRequestBody req
-    _ <- print ("postAlphaminerV1R received a request!\n" :: Text)
     let elog = readXES body
     case elog of
         Nothing -> returnJson getNode

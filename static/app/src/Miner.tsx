@@ -12,6 +12,8 @@ import FileUpload from './FileUpload';
 import { DropzoneAreaBase, DropzoneAreaBaseClasses } from "material-ui-dropzone";
 import AttachFile from '@material-ui/icons/AttachFile';
 import Graph from './Graph';
+import testJSONFile from './transitions.json';
+import MinerClass from './MinerClass';
 
 const theme = createTheme();
 
@@ -21,8 +23,8 @@ export default function Miner() {
     <React.Fragment>
       <MinerAppBar />
       
-      <UploadAndGraph />
-      
+      <MinerClass />
+
     </React.Fragment>
   );
 }
@@ -85,7 +87,7 @@ function UploadAndGraph() {
   } else {
     return (
       <div style={{ width: '100%', display: 'flex', justifyContent: 'center'}}>
-       <Graph />
+       
       </div> 
     );
   }
