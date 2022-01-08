@@ -36,7 +36,7 @@ export default class GraphClass extends React.Component<GraphProps, GraphState> 
             headers: { 'Content-Type': 'application/xml' },
             body: this.props.postBody
         };
-        const apiURL: string = window.location.href + "/api/v1/" + this.props.miner;
+        const apiURL: string = window.location.href + "api/v1/" + this.props.miner;
 
         fetch(apiURL, requestOptions)
             .then(response => response.json())
@@ -52,10 +52,12 @@ export default class GraphClass extends React.Component<GraphProps, GraphState> 
 
         if (!receivedResponse) {
             return (
-                <Box width={300} height={300} display="flex" alignItems="center" justifyContent="center" >
-                    <SpinStretch color="#002f6c" width="100%" height="100%" />
-                </Box>
-            );
+                <div style={{ width: '100%', display: 'flex', justifyContent: 'center'}}>
+                    <Box width="200px" height="200px" display="flex" alignItems="center" justifyContent="center" >
+                        <SpinStretch color="#002f6c" width="90%" height="90%" />
+                    </Box>
+                </div>
+                );
         }
 
         if (receivedResponse && responseError === "") {
@@ -70,7 +72,7 @@ export default class GraphClass extends React.Component<GraphProps, GraphState> 
                 <div style={{ width: '100%', display: 'flex', justifyContent: 'center'}}>
                     <CytoscapeComponent 
                         elements = {CytoscapeComponent.normalizeElements (apiResponse)}
-                        style={ { width: '900px', height: '550px' } }
+                        style={ { width: '900px', height: '550px', border: '2px dashed grey'} }
                         stylesheet={[
                             {
                                 selector: 'node',
@@ -107,10 +109,12 @@ export default class GraphClass extends React.Component<GraphProps, GraphState> 
             );
         } else {
             return (
-                <Alert severity="error">
-                    <AlertTitle>Error</AlertTitle>
-                    An error occured while trying to fetch data from the API: {responseError}
-                </Alert>
+                <div style={{ display: 'flex', justifyContent: 'center'}}>
+                    <Alert severity="error" >
+                        <AlertTitle>Error</AlertTitle>
+                        An error occured while trying to fetch data from the API: {responseError}
+                    </Alert>
+                </div>
             );
         }
     }
