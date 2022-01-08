@@ -1,40 +1,40 @@
 {
-    "nodes": [
-      {
-        "data": {
-          "shape": "rectangle",
-          "id": "start"
-        }
-      },
-      {
-        "data": {
-          "shape": "ellipse",
-          "id": "n1"
-        }
-      },
-      {
-        "data": {
-          "shape": "rectangle",
-          "id": "end"
-        }
+  "nodes": [
+    {
+      "data": {
+        "shape": "rectangle",
+        "id": "start"
       }
-    ],
-    "edges": [
-        {
-          "data": {
-            "arrow": "triangle",
-            "source": "start",
-            "id": "e1",
-            "target": "n1"
-          }
-        },
-        {
-          "data": {
-            "arrow": "triangle",
-            "source": "n1",
-            "id": "e2",
-            "target": "end"
-          }
-        }
-      ]
+    },
+    {
+      "data": {
+        "shape": "ellipse",
+        "id": "n1"
+      }
+    },
+    {
+      "data": {
+        "shape": "rectangle",
+        "id": "end"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "data": {
+        "arrow": "triangle",
+        "source": "start",
+        "id": "e1",
+        "target": "n1"
+      }
+    },
+    {
+      "data": {
+        "arrow": "triangle",
+        "source": "n1",
+        "id": "e2",
+        "target": "end"
+      }
+    }
+  ]
 }
