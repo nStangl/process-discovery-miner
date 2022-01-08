@@ -22,8 +22,6 @@ postAlphaminerV1R :: Handler Value
 postAlphaminerV1R =  do
     req <-  waiRequest
 
-    _ <- liftIO $ threadDelay 4000000
-
     body <- liftIO $ strictRequestBody req
     let elog = readXES body
     case elog of

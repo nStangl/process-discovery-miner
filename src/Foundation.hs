@@ -171,6 +171,9 @@ instance Yesod App where
     makeLogger :: App -> IO Logger
     makeLogger = return . appLogger
 
+    maximumContentLength :: site -> Maybe (Route site) -> Maybe Word64
+    maximumContentLength _ _ = Just $ fromIntegral (50 * 1024 * 1024 :: Word64) -- 50 megabytes
+
 -- Define breadcrumbs.
 instance YesodBreadcrumbs App where
     -- Takes the route that the user is currently on, and returns a tuple
