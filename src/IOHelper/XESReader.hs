@@ -48,15 +48,23 @@ readXES raw =
         Nothing -> Nothing
         Just doc -> do
             let traces = findTraces doc
-
-            if isLifecycleExtension doc
+            let (isLife, ats) = isLifecycleExtension doc
+            if True
                 then Just $ map ((mapMaybe getActivityFromEvent . mapMaybe filterEventForLifecycle) . findEvents) traces
-                else Just $ map (mapMaybe getActivityFromEvent . findEvents) traces 
-            
+                else Just $ map (mapMaybe getActivityFromEvent . findEvents) traces
 
+readTest :: String -> IO (Bool, [String])
+readTest path = do
+    s <- readFile path
+    case parseXMLDoc s of
+        Nothing -> return (False, ["error"])
+        Just doc -> return $ isLifecycleExtension doc
+
+-- <string key="lifecycle:transition" value="complete"/>
 -- | Checks if the lifecycle extension is being set
-isLifecycleExtension :: Element -> Bool
-isLifecycleExtension _ = True
+isLifecycleExtension :: Element -> (Bool, [String])
+isLifecycleExtension doc = do
+    (False, [])
 
 findTraces :: Element -> [Element]
 findTraces = filterChildren (\e -> qName (elName e) == "trace")
