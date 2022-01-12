@@ -44,7 +44,7 @@ export default class GraphClass extends React.Component<
       .then((response) => response.json())
       .then((data) =>
         this.setState({
-          apiResponse: data,
+          apiResponse: data.graph,
           receivedResponse: true,
           responseError: "",
         })

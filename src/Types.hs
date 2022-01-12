@@ -56,13 +56,14 @@ instance FromJSON CytoEdge where
     parseJSON _ = empty
 
 instance ToJSON CytoGraph where
-    toJSON (CytoGraph ns es) = object ["nodes" .= ns, "edges" .= es]
+    toJSON (CytoGraph ns es) = object ["graph" .= object ["nodes" .= ns, "edges" .= es]]
 
 instance FromJSON CytoGraph where
     parseJSON (Object v) = do
-        ns' <- v .: "nodes"
-        es' <- v .: "edges"
-        return CytoGraph {nodes = ns', edges = es'}
+        g <- v .: "graph"
+        ns <- g .: "nodes"
+        es <-  g .: "edges"
+        return CytoGraph { nodes = ns, edges = es }
     parseJSON _ = empty
 
 graph :: CytoGraph
