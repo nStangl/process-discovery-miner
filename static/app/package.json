@@ -18,6 +18,7 @@
     "cytoscape-svg": "^0.3.1",
     "material-ui-dropzone": "^3.5.0",
     "react": "latest",
+    "react-cssfx-loading": "^1.0.3",
     "react-cytoscapejs": "^1.2.1",
     "react-dom": "latest",
     "react-scripts": "latest",
