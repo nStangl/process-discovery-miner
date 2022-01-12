@@ -6,12 +6,14 @@ import Text.XML.Light
     ( parseXMLDoc,
       filterChild,
       filterChildren,
+      elChildren,
       Attr(attrVal),
       Element(elName, elAttribs),
       QName(qName) )
-import Data.Maybe ( mapMaybe )
+import Data.Maybe ( mapMaybe, fromMaybe )
 import Types
 import Text.XML.Light.Lexer (XmlSource)
+import LogAnalyzer
 
 {-
 xmlTest :: String -> IO ()
@@ -40,7 +42,10 @@ xmlTest path = do
 readXESFile :: String -> IO (Maybe EventLog)
 readXESFile path = do
     s <- readFile path
-    return $ readXES s
+    let elog  = readXES s
+    putStrLn "Frequency:"
+    print $ countTraces $ fromMaybe [] elog
+    return elog
 
 readXES :: XmlSource s => s-> Maybe EventLog
 readXES raw =
@@ -66,6 +71,14 @@ isLifecycleExtension :: Element -> (Bool, [String])
 isLifecycleExtension doc = do
     (False, [])
 
+-- | Takes the first (any) event and checks if the timestamp attribute is set
+isTimestampSet :: Element -> Bool
+isTimestampSet event = case line event of
+                            Nothing -> False
+                            Just _ -> True
+    where
+        line = filterChild (\x -> qName (elName x) == "date" && attrVal (head (elAttribs x)) == "time:timestamp")
+
 findTraces :: Element -> [Element]
 findTraces = filterChildren (\e -> qName (elName e) == "trace")
 
@@ -89,3 +102,10 @@ filterEventForLifecycle eve = case line eve of
     where
         line = filterChild (\e -> qName (elName e) == "string" && attrVal (head (elAttribs e)) == "lifecycle:transition")
 
+getEventLines :: Element -> [(String, String, String)]
+getEventLines event = do
+    let typef = qName . elName
+    let keyf = attrVal . head . elAttribs
+    let valuef e = attrVal (elAttribs e !! 1)
+
+    fmap (\x -> (typef x, keyf x, valuef x)) (elChildren event)

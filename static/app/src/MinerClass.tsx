@@ -56,6 +56,8 @@ export default class MinerClass extends React.Component<MyProps, MyState> {
 
   handleAdd = (newFiles: FileObject[]) => {
     this.setState({ files: [newFiles[0]] });
+    console.log("The uploaded file is:");
+    console.log(newFiles[0]);
   };
 
   handleDelete = (deleted: FileObject) => {

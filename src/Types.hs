@@ -3,7 +3,7 @@ module Types
      where
 
 import Data.Aeson
-import Control.Applicative
+import Control.Applicative ( Alternative(empty) )
 import Data.Text ()
 import qualified Data.ByteString.Lazy as LBS
 
@@ -92,3 +92,9 @@ perPrint2 = print (encode graph)
 
 encGraph :: LBS.ByteString
 encGraph = encode graph
+
+getEventLog1 :: EventLog
+getEventLog1 = [["a","b"], ["a","c"]]
+
+getEventLog2 :: EventLog
+getEventLog2 = [["a","b"], ["a","d"], ["a","c"], ["a","c"], ["a","c"], ["a","c"]]
