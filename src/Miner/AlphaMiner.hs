@@ -5,9 +5,8 @@ import Types
 import qualified Data.Set as Set
 
 import Data.Tuple (swap)
-import Data.List
-import Data.Bifunctor
-import IOHelper.XESReader (readXESFile)
+import Data.List ( (\\), nub, partition )
+import Data.Bifunctor ( Bifunctor(bimap) )
 
 footprintMatrix :: EventLog -> String
 footprintMatrix = undefined
@@ -86,19 +85,6 @@ expToCytoGraph elog ts = CytoGraph nodes' edges'
         nodes' =  nodes1 ++ nodes2
         edges'' = concat (edges1 ++ edges2)
         edges' = fmap (\(e, i) -> e { edgeID = "e" ++ show i}) (zip edges'' ([0..] :: [Integer]))
-
-testexp :: String -> IO ()
-testexp path = do
-    mlog <- readXESFile path
-    case mlog of
-        Just l -> do {-return $ nodes $ expToCytoGraph l (alphaMiner l)-}
-            let cytoGraph = expToCytoGraph l (alphaMiner l)
-            putStrLn "CytoGraph"
-            putStrLn "Nodes:"
-            mapM_ print (nodes cytoGraph)
-            putStrLn "\nEdges:"
-            mapM_ print (edges cytoGraph)
-        Nothing -> undefined
 
 containsStartEnd :: Transition -> Bool
 containsStartEnd (["start"], _) = True

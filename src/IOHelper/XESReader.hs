@@ -1,6 +1,9 @@
 module IOHelper.XESReader
+    ( readXESFile,
+      readXES,
+      readTest
+    )
     where
-
 
 import Text.XML.Light
     ( parseXMLDoc,
@@ -13,50 +16,36 @@ import Text.XML.Light
 import Data.Maybe ( mapMaybe, fromMaybe )
 import Types
 import Text.XML.Light.Lexer (XmlSource)
-import LogAnalyzer
+import Control.Exception ( try, SomeException (SomeException) )
+import LogAnalyzer ( countTraces )
 
-{-
-xmlTest :: String -> IO ()
-xmlTest path = do
-    s <- readFile path
-    case parseXMLDoc s of
-        Nothing -> error "Failed to parse xml"
-        Just doc -> do
+readXESFileError :: String
+readXESFileError = "An error occured trying to read the file! This might be caused by a wrong encoding."
 
-            let traces = findTraces doc
-            let eventss = map findEvents traces
-            let xs = map (mapMaybe filterEventForActivity) eventss
+readXESError :: String
+readXESError = "An error occured trying to parse the xml! Make sure it is a valid xml document and is defined as seen in the example."
 
-    
-            let xls = xLBruteForceLists xs
-            print "Reading set:"
-            print elog
-            putStrLn "\nResulting x_L:"
-            print xls
-            putStrLn "\nResulting petri net (without start and end transitions):"
-            print $ yLLists xls
-            putStrLn "\nAll transitions incl. start and end transitions:"
-            print $ alphaMiner elog
--}
-
-readXESFile :: String -> IO (Maybe EventLog)
+readXESFile :: String -> IO (Either String EventLog)
 readXESFile path = do
-    s <- readFile path
-    let elog  = readXES s
-    putStrLn "Frequency:"
-    print $ countTraces $ fromMaybe [] elog
-    return elog
+    strOrExce <- try $ readFile path :: IO (Either SomeException String)
+    case strOrExce of
+        Left _  -> return $ Left readXESFileError
+        Right s -> do
+            let logOrErr = readXES s
+            return $ case logOrErr of
+                Left err -> Left err
+                Right elog -> Right elog
 
-readXES :: XmlSource s => s-> Maybe EventLog
+readXES :: XmlSource s => s-> Either String EventLog
 readXES raw =
     case parseXMLDoc raw of
-        Nothing -> Nothing
+        Nothing -> Left readXESError
         Just doc -> do
             let traces = findTraces doc
             let (isLife, ats) = isLifecycleExtension doc
             if True
-                then Just $ map ((mapMaybe getActivityFromEvent . mapMaybe filterEventForLifecycle) . findEvents) traces
-                else Just $ map (mapMaybe getActivityFromEvent . findEvents) traces
+                then Right $ map ((mapMaybe getActivityFromEvent . mapMaybe filterEventForLifecycle) . findEvents) traces
+                else Right $ map (mapMaybe getActivityFromEvent . findEvents) traces
 
 readTest :: String -> IO (Bool, [String])
 readTest path = do

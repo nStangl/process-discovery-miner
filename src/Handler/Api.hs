@@ -13,10 +13,7 @@ import Types
 import Miner.AlphaMiner
 import Miner.RegionMiner ()
 import IOHelper.XESReader ( readXES )
-
-import Control.Concurrent ( threadDelay )
-
-
+import LogAnalyzer ( countTraces )
 
 postAlphaminerV1R :: Handler Value
 postAlphaminerV1R =  do
@@ -25,8 +22,8 @@ postAlphaminerV1R =  do
     body <- liftIO $ strictRequestBody req
     let elog = readXES body
     case elog of
-        Nothing -> returnJson getNode
-        Just l -> returnJson $ expToCytoGraph l $ alphaMiner l
+        Left err -> invalidArgs [pack err]
+        Right l -> returnJson $ expToCytoGraph l $ alphaMiner l
 
 postRegionminerV1R :: Handler Value
 postRegionminerV1R = do
