@@ -13,11 +13,10 @@ import Text.XML.Light
       Attr(attrVal),
       Element(elName, elAttribs),
       QName(qName) )
-import Data.Maybe ( mapMaybe, fromMaybe )
+import Data.Maybe ( mapMaybe )
 import Types
 import Text.XML.Light.Lexer (XmlSource)
-import Control.Exception ( try, SomeException (SomeException) )
-import LogAnalyzer ( countTraces )
+import Control.Exception ( try, SomeException )
 
 readXESFileError :: String
 readXESFileError = "An error occured trying to read the file! This might be caused by a wrong encoding."
@@ -42,7 +41,7 @@ readXES raw =
         Nothing -> Left readXESError
         Just doc -> do
             let traces = findTraces doc
-            let (isLife, ats) = isLifecycleExtension doc
+            -- let (isLife, ats) = isLifecycleExtension doc
             if True
                 then Right $ map ((mapMaybe getActivityFromEvent . mapMaybe filterEventForLifecycle) . findEvents) traces
                 else Right $ map (mapMaybe getActivityFromEvent . findEvents) traces
@@ -57,7 +56,7 @@ readTest path = do
 -- <string key="lifecycle:transition" value="complete"/>
 -- | Checks if the lifecycle extension is being set
 isLifecycleExtension :: Element -> (Bool, [String])
-isLifecycleExtension doc = do
+isLifecycleExtension _ = do
     (False, [])
 
 -- | Takes the first (any) event and checks if the timestamp attribute is set

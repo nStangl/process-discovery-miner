@@ -9,6 +9,8 @@ module Handler.Api where
 import Import
 import Network.Wai
 import Data.Aeson
+import qualified Data.HashMap.Strict as HMS
+import Data.Aeson.Types
 import Types
 import Miner.AlphaMiner
 import Miner.RegionMiner ()
@@ -20,15 +22,19 @@ postAlphaminerV1R =  do
     req <-  waiRequest
 
     body <- liftIO $ strictRequestBody req
-    let elog = readXES body
-    case elog of
+    let logOrErr = readXES body
+    case logOrErr of
         Left err -> invalidArgs [pack err]
-        Right l -> returnJson $ expToCytoGraph l $ alphaMiner l
+        Right elog -> do
+            let resp = alphaResponse (expToCytoGraph elog (alphaMiner elog)) (countTraces elog)
+            return resp
+
+alphaResponse :: CytoGraph -> [(Int, Trace)] -> Value
+alphaResponse g tc = Object $ HMS.fromList [("graph", toJSON g), ("traceCount", toJSON tc)]   
 
 postRegionminerV1R :: Handler Value
 postRegionminerV1R = do
     returnJson graphNotImplemented
-
 
 graphNotImplemented :: CytoGraph
 graphNotImplemented = CytoGraph 

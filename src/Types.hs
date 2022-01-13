@@ -5,7 +5,6 @@ module Types
 import Data.Aeson
 import Control.Applicative ( Alternative(empty) )
 import Data.Text ()
-import qualified Data.ByteString.Lazy as LBS
 
 type EventLog = [Trace]
 type Trace = [Activity]
@@ -56,46 +55,11 @@ instance FromJSON CytoEdge where
     parseJSON _ = empty
 
 instance ToJSON CytoGraph where
-    toJSON (CytoGraph ns es) = object ["graph" .= object ["nodes" .= ns, "edges" .= es]]
+    toJSON (CytoGraph ns es) = object ["nodes" .= ns, "edges" .= es]
 
 instance FromJSON CytoGraph where
     parseJSON (Object v) = do
-        g <- v .: "graph"
-        ns <- g .: "nodes"
-        es <-  g .: "edges"
+        ns <- v .: "nodes"
+        es <-  v .: "edges"
         return CytoGraph { nodes = ns, edges = es }
     parseJSON _ = empty
-
-graph :: CytoGraph
-graph = CytoGraph {
-    nodes = [
-        CytoNode { nodeID = "start", shape = "rectangle"},
-        CytoNode { nodeID = "n1", shape = "ellipse"},
-        CytoNode { nodeID = "end", shape = "rectangle"}
-    ],
-    edges = [
-        CytoEdge {edgeID= "e1", source= "start", target= "n1", arrow= "triangle"},
-        CytoEdge {edgeID= "e2", source= "n1", target= "end", arrow= "triangle"}
-    ]
-}
-
-getNode :: CytoNode
-getNode  = CytoNode { nodeID = "start", shape = "rectangle"}
-
-decodeNode :: Maybe CytoNode
-decodeNode = decode "{\"data\":{\"shape\":\"rectangle\",\"id\":\"start\"}}" :: Maybe CytoNode
-
-perPrint :: IO ()
-perPrint = print (encode getNode)
-
-perPrint2 :: IO ()
-perPrint2 = print (encode graph)
-
-encGraph :: LBS.ByteString
-encGraph = encode graph
-
-getEventLog1 :: EventLog
-getEventLog1 = [["a","b"], ["a","c"]]
-
-getEventLog2 :: EventLog
-getEventLog2 = [["a","b"], ["a","d"], ["a","c"], ["a","c"], ["a","c"], ["a","c"]]
