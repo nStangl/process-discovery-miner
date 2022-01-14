@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
-import testElements from "./myfile.json";
 import dagre from "cytoscape-dagre";
 import cytoscape from "cytoscape";
 import { ElementDefinition } from "cytoscape";
@@ -23,12 +22,10 @@ type GraphState = {
 type AlphaMinerReponse = {
   graph: cytoscape.ElementDefinition[];
   traceCount: Array<[number, Array<string>]>;
-  alphaminersets: Object
-}
+  alphaminersets: Object;
+};
 
-type RegionMinerResponse = {
-
-}
+type RegionMinerResponse = {};
 
 type APIReponse = AlphaMinerReponse | RegionMinerResponse;
 

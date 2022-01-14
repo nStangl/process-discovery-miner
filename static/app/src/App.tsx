@@ -6,17 +6,21 @@ import Paper from "@mui/material/Paper";
 import { styled } from "@mui/material/styles";
 import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
-
-import Miner from "./Miner";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import AccountTreeIcon from "@mui/icons-material/AccountTree";
+import { InfoDialog, AboutDialog } from "./Dialog";
 import { CssBaseline } from "@mui/material";
+import MinerClass from "./MinerClass";
+
 
 export default function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline>
         <Box sx={{ flexGrow: 1 }}>
-          <Miner />
-
+          <CustomAppBar />
+          <MinerClass />
           <Copyright />
         </Box>
       </CssBaseline>
@@ -42,3 +46,22 @@ const Item = styled(Paper)(({ theme }) => ({
   textAlign: "center",
   color: theme.palette.text.secondary,
 }));
+
+function CustomAppBar() {
+  return (
+    <Box sx={{ flexGrow: 1 }}>
+      <AppBar position="static">
+        <Toolbar>
+          <AccountTreeIcon sx={{ mr: 2 }} />
+          <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
+            Alpha Miner
+          </Typography>
+
+          <InfoDialog />
+
+          <AboutDialog />
+        </Toolbar>
+      </AppBar>
+    </Box>
+  );
+}

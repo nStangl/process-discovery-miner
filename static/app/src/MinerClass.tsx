@@ -1,32 +1,10 @@
 import React, { useState } from "react";
-import AppBar from "@mui/material/AppBar";
-import AccountTreeIcon from "@mui/icons-material/AccountTree";
-import CssBaseline from "@mui/material/CssBaseline";
-import Toolbar from "@mui/material/Toolbar";
-import Grid from "@mui/material/Grid";
 import Box from "@mui/material/Box";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { Typography } from "@mui/material";
-import { InfoDialog, AboutDialog } from "./Dialog";
-import FileUpload from "./FileUpload";
 import {
   DropzoneAreaBase,
-  DropzoneAreaBaseClasses,
   FileObject,
 } from "material-ui-dropzone";
-import AttachFile from "@material-ui/icons/AttachFile";
-import Graph from "./Graph";
-import {
-  ConstructionOutlined,
-  RepeatOneSharp,
-  UploadFile,
-} from "@mui/icons-material";
-import { convertToObject } from "typescript";
-import CytoscapeComponent from "react-cytoscapejs";
-import testElements from "./myfile.json";
-import dagre from "cytoscape-dagre";
-import cytoscape from "cytoscape";
-import { ElementDefinition } from "cytoscape";
+
 import GraphClass from "./GraphClass";
 
 type MyProps = {};
