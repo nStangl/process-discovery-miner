@@ -18,16 +18,41 @@ type GraphState = {
   receivedResponse: Boolean;
   responseError: string;
 };
+type APIResponse = AlphaMinerReponse | RegionMinerResponse;
 // Stores all information received from alpha miner API
 type AlphaMinerReponse = {
   graph: cytoscape.ElementDefinition[];
-  traceCount: Array<[number, Array<string>]>;
-  alphaminersets: Object;
+  traceCount: Array<TraceCountLine>;
+  alphaminersets: AlphaminerSets;
+  footprintmatrix: FootprintMatrix;
 };
 
 type RegionMinerResponse = {};
 
-type APIReponse = AlphaMinerReponse | RegionMinerResponse;
+// type definitions to safely represent API values
+type FootprintMatrix = {
+  dim: Number;
+  rows: Array<String>;
+  fields: Array<Array<String>>;
+};
+
+type TraceCountLine = {
+  count: Number;
+  trace: Array<String>;
+};
+
+type Transition = {
+  from: Array<String>;
+  to: Array<String>;
+};
+
+type AlphaminerSets = {
+  tl: Array<String>;
+  ti: Array<String>;
+  to: Array<String>;
+  xl: Array<Transition>;
+  yl: Array<Transition>;
+};
 
 export default class GraphClass extends React.Component<
   GraphProps,
@@ -159,5 +184,13 @@ export default class GraphClass extends React.Component<
         </div>
       );
     }
+  }
+
+  parseReponseToAPIReponse (minertype: string): APIResponse {
+    const resp: RegionMinerResponse = {
+
+    }
+
+    return resp;
   }
 }
