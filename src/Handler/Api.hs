@@ -10,7 +10,6 @@ import Import
 import Network.Wai
 import Data.Aeson
 import qualified Data.HashMap.Strict as HMS
-import Data.Aeson.Types
 import Types
 import Miner.AlphaMiner
 import Miner.RegionMiner ()
@@ -26,11 +25,19 @@ postAlphaminerV1R =  do
     case logOrErr of
         Left err -> invalidArgs [pack err]
         Right elog -> do
-            let resp = alphaResponse (expToCytoGraph elog (alphaMiner elog)) (countTraces elog)
-            return resp
+            let cytoGraph = expToCytoGraph elog (alphaMiner elog)
+            let traceCount = countTraces elog
+            let ams = alphaminersets elog
+            let fpm = createFpMatrix elog
+            return $ alphaminerResp cytoGraph traceCount ams fpm
 
-alphaResponse :: CytoGraph -> [(Int, Trace)] -> Value
-alphaResponse g tc = Object $ HMS.fromList [("graph", toJSON g), ("traceCount", toJSON tc)]   
+alphaminerResp :: CytoGraph -> [(Int, Trace)] -> AlphaMinerSets -> FootprintMatrix -> Value
+alphaminerResp g tc ams fpmatrix = Object $ HMS.fromList [
+            ("graph", toJSON g),
+            ("traceCount", toJSON tc),
+            ("alphaminersets", toJSON ams),
+            ("footprintmatrix", toJSON fpmatrix)
+            ]   
 
 postRegionminerV1R :: Handler Value
 postRegionminerV1R = do

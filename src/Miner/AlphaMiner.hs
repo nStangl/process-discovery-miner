@@ -1,3 +1,4 @@
+{-# LANGUAGE TupleSections #-}
 module Miner.AlphaMiner where
 
 import Types
@@ -5,11 +6,10 @@ import Types
 import qualified Data.Set as Set
 
 import Data.Tuple (swap)
-import Data.List ( (\\), nub, partition )
+import Data.List ( (\\), nub, partition, sort, find, sortBy, groupBy )
 import Data.Bifunctor ( Bifunctor(bimap) )
-
-footprintMatrix :: EventLog -> String
-footprintMatrix = undefined
+import Data.Function ( on )
+import ClassyPrelude ( fromMaybe )
 
 ordFollowDir :: EventLog -> Set.Set (Activity, Activity)
 ordFollowDir = Set.fromList . concatMap (\t -> zip t (tail t))
@@ -80,11 +80,70 @@ expToCytoGraph elog ts = CytoGraph nodes' edges'
         nodes1 = CytoNode "start" "ellipse" : CytoNode "end" "ellipse" : map (`CytoNode` "rectangle") (Set.toList (tL elog))
         (startend, ts') = partition containsStartEnd ts
         edges1 = map transformStartEndEdges startend
-        edges2Fs = fmap transformEdges ts' 
+        edges2Fs = fmap transformEdges ts'
         (edges2, nodes2) = unzip $ zipWith (\ f i -> f i) edges2Fs [1..]
         nodes' =  nodes1 ++ nodes2
         edges'' = concat (edges1 ++ edges2)
         edges' = fmap (\(e, i) -> e { edgeID = "e" ++ show i}) (zip edges'' ([0..] :: [Integer]))
+
+alphaminersets :: EventLog -> AlphaMinerSets
+alphaminersets elog = do
+    let xl' = xLBruteForceLists elog
+    AlphaMinerSets {
+        tl= Set.toList $ tL elog,
+        ti= Set.toList $ tI elog,
+        to= Set.toList $ tO elog,
+        xl= xl' ,
+        yl= yLLists xl'}
+
+-- | Creates a FootprintMatrix from given EventLog
+createFpMatrix :: EventLog -> FootprintMatrix
+createFpMatrix elog = do
+    -- Sort the Activities and define a rank/index for each Activity
+    let rows = sort $ nub $ concat elog
+    let indexer = zip rows ([1..] :: [Int])
+
+    let fAddStr :: [(Int, Int)] -> String -> [((Int,Int), String)]
+        fAddStr xs str = map (, str) xs
+    -- no need for follDir; keep here just in case
+    {-
+    let follDir = indexActivities indexer $ Set.toList $ ordFollowDir elog
+    let follDir' = fpAux follDir ">"
+    let follDirR = fpAux (map swap follDir) "<"
+    -}
+
+    -- Create ordering relations; then
+    -- index Activity based on ordering
+    let ordCaus = indexActivities indexer $ Set.toList $ ordCausal elog
+    let ordCausR = fAddStr (map swap ordCaus) "<-"
+    let ordCaus' = fAddStr ordCaus "->"
+
+    let ordChoi = Set.toList $ ordChoice elog
+    let ordChoi' = fAddStr (indexActivities indexer ordChoi) "#"
+
+    let ordPar = Set.toList $ ordParallel elog
+    let ordPar' = fAddStr(indexActivities indexer ordPar) "||"
+    
+    let xs = concat [ordCaus', ordCausR, ordPar', ordChoi']
+    -- sort and group them based on postiton tuple
+    let groupFirst = sortAndGroupBy (fst .fst) xs
+    let groupSecond = fmap (sortAndGroupBy (snd .fst)) groupFirst
+    -- remove positions and create table
+    let striped' = (map.map.map) snd groupSecond
+    let combined = (map.map) unwords striped'
+
+    FootprintMatrix (length rows) rows combined
+
+-- | Sorts and groups by one element in the first tuple
+sortAndGroupBy :: Ord a => (((a,a),b) -> a) -> [((a,a), b)]  -> [[((a,a), b)]]
+sortAndGroupBy f = groupBy ((==) `on` f) . sortBy (compare `on` f)
+
+-- | Takes a list of mappings that define ranking, i.e. ("a",1) and transforms Activity to Int
+indexActivities :: [(Activity, Int)] -> [(Activity, Activity)] -> [(Int, Int)]
+indexActivities ind = map (bimap find' find')
+    where
+        find' :: Activity -> Int
+        find' a' = snd $ fromMaybe ("" :: Activity, -1) $ find (\x -> fst x == a') ind
 
 containsStartEnd :: Transition -> Bool
 containsStartEnd (["start"], _) = True

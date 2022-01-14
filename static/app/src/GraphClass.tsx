@@ -13,11 +13,25 @@ type GraphProps = {
   postBody: string;
   miner: string;
 };
+
 type GraphState = {
   apiResponse: any;
   receivedResponse: Boolean;
   responseError: string;
 };
+// Stores all information received from alpha miner API
+type AlphaMinerReponse = {
+  graph: cytoscape.ElementDefinition[];
+  traceCount: Array<[number, Array<string>]>;
+  alphaminersets: Object
+}
+
+type RegionMinerResponse = {
+
+}
+
+type APIReponse = AlphaMinerReponse | RegionMinerResponse;
+
 export default class GraphClass extends React.Component<
   GraphProps,
   GraphState
