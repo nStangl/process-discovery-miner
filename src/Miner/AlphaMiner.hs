@@ -45,6 +45,7 @@ xL :: EventLog -> Set.Set (Set.Set Activity, Set.Set Activity)
 xL l = Set.fromList $ map (Data.Bifunctor.bimap Set.fromList Set.fromList) xs
     where xs = xLBruteForceLists l
 
+-- | Much bruteforce, very wow
 xLBruteForceLists :: EventLog -> [Transition]
 xLBruteForceLists l = filter (uncurry (xLFilter causal choice)) (getAllPermu xs xs)
     where
@@ -52,6 +53,7 @@ xLBruteForceLists l = filter (uncurry (xLFilter causal choice)) (getAllPermu xs 
         choice = Set.toList $ ordChoice l
         xs = Set.toList $ tL l
 
+-- | Filter condition for xL
 -- TODO: optimise two elem calls into one
 xLFilter :: [(Activity, Activity)] -> [(Activity, Activity)] -> [Activity] -> [Activity] -> Bool
 xLFilter causal choice as bs = cond1 as bs && cond2 as && cond2 bs
@@ -73,7 +75,7 @@ alphaMiner elog = start ++ transitions ++ end
         end = map (\x -> ([x], ["end"])) (Set.toList (tO elog))
         transitions = yLLists $ xLBruteForceLists elog
 
-
+-- | Takes the EventLog and result of the alphaMiner and returns a CytoGraph
 expToCytoGraph :: EventLog -> [Transition] -> CytoGraph
 expToCytoGraph elog ts = CytoGraph nodes' edges'
     where
@@ -105,12 +107,6 @@ createFpMatrix elog = do
 
     let fAddStr :: [(Int, Int)] -> String -> [((Int,Int), String)]
         fAddStr xs str = map (, str) xs
-    -- no need for follDir; keep here just in case
-    {-
-    let follDir = indexActivities indexer $ Set.toList $ ordFollowDir elog
-    let follDir' = fpAux follDir ">"
-    let follDirR = fpAux (map swap follDir) "<"
-    -}
 
     -- Create ordering relations; then
     -- index Activity based on ordering
