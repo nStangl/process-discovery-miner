@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
 import dagre from "cytoscape-dagre";
-import cytoscape from "cytoscape";
+import cytoscape, { ExportOptions } from "cytoscape";
 import { ElementDefinition } from "cytoscape";
 import SpinStretch from "react-cssfx-loading/lib/SpinStretch";
 import Alert from "@mui/material/Alert";
@@ -13,11 +13,15 @@ import TableCell from "@mui/material/TableCell";
 import TableContainer from "@mui/material/TableContainer";
 import TableHead from "@mui/material/TableHead";
 import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import { Pie } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import { TabsContextValue } from "@mui/base";
 import { PieChart } from "./PieChart";
+import Grid from "@mui/material/Grid";
+import Divider from "@mui/material/Divider";
+import Button from "@mui/material/Button";
+import ButtonGroup from "@mui/material/ButtonGroup";
+import Paper from "@mui/material/Paper";
+import Typography from "@mui/material/Typography";
+import { saveAs } from "file-saver";
+
 
 type GraphProps = {
   postBody: string;
@@ -25,10 +29,9 @@ type GraphProps = {
 };
 
 type GraphState = {
-  apiResponse: any;
   response: APIResponse;
-  receivedResponse: boolean;
   responseError: string;
+  cyRef: cytoscape.Core | null;
 };
 
 // type definitons to conveniently store the api reponses
@@ -73,10 +76,9 @@ export default class GraphClass extends React.Component<
     super(props);
 
     this.state = {
-      apiResponse: null,
       response: null,
-      receivedResponse: false,
       responseError: "",
+      cyRef: null,
     };
   }
 
@@ -93,10 +95,9 @@ export default class GraphClass extends React.Component<
       .then((data) => this.handleFetch(data))
       .catch((error) => {
         this.setState({
-          apiResponse: null,
-          receivedResponse: true,
           responseError: error.toString(),
           response: null,
+          cyRef: null,
         });
         console.log(
           "There was an error fetching from the API. Made request to: " + apiURL
@@ -104,6 +105,7 @@ export default class GraphClass extends React.Component<
       });
   }
 
+  // Perform type casting and parse graph
   handleFetch(responseJSON: any): void {
     if (this.props.miner == "alphaminer") {
       let fpm: FootprintMatrix = responseJSON.footprintmatrix;
@@ -112,8 +114,6 @@ export default class GraphClass extends React.Component<
       let ams: AlphaminerSets = responseJSON.alphaminersets;
 
       this.setState({
-        apiResponse: responseJSON.graph,
-        receivedResponse: true,
         responseError: "",
         response: {
           graph: CytoscapeComponent.normalizeElements(graph),
@@ -121,15 +121,17 @@ export default class GraphClass extends React.Component<
           alphaminersets: ams,
           footprintmatrix: fpm,
         },
+        cyRef: null,
       });
     } else if (this.props.miner == "regionminer") {
     }
   }
 
   render() {
-    const { apiResponse, receivedResponse, responseError } = this.state;
+    const { response, responseError } = this.state;
 
-    if (!receivedResponse) {
+    if (response === null) {
+      // Loading animation...
       return (
         <div
           style={{ width: "100%", display: "flex", justifyContent: "center" }}
@@ -147,24 +149,62 @@ export default class GraphClass extends React.Component<
       );
     }
 
-    if (receivedResponse && responseError === "") {
+    if (response !== null && responseError === "") {
       console.log("Reponse obj");
       console.log(this.state.response);
 
       return (
-        <div
-          style={{ width: "100%", display: "flex", justifyContent: "center" }}
-        >
-          <div>{this.displayCytoGraph(this.state.response?.graph!)}</div>
-          <div>
-            {this.displayFootprintmatrixOrError(
-              this.state.response?.footprintmatrix
-            )}
-          </div>
-          <div>
-            {this.displayTraceCountPieChart(this.state.response?.traceCount)}
-          </div>
-        </div>
+        <Box sx={{ flexGrow: 1 }}>
+          
+          <Box>
+            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                Petri Net
+              </Typography>
+            </Box>
+            
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+              {this.displayCytoGraph(this.state.response?.graph!)}
+            </Box>
+            <Box sx={{ display: "flex", justifyContent: "center" }}>
+              <ButtonGroup variant="outlined" aria-label="outlined button group">
+                <Button onClick={this.handleResetCy}>Reset View</Button>
+                <Button onClick={this.handleSavePNG}>Save as PNG</Button>
+                <Button onClick={this.handleSaveJSON}>Save as JSON</Button>
+              </ButtonGroup>
+            </Box>
+          </Box>
+
+          <Grid
+            container
+            rowSpacing={3}
+            columnSpacing={1}
+            justifyContent="space-evenly"
+            alignItems="center"
+          >
+            <Grid item xs={12} md={12} lg={12} justifyContent="center"></Grid>
+
+            <Grid item xs={12}>
+              <Divider flexItem sx={{ borderBottomWidth: 3 }} />
+            </Grid>
+
+            <Grid item xs="auto">
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                Footprint matrix
+              </Typography>
+              {this.displayFootprintmatrix(
+                this.state.response?.footprintmatrix
+              )}
+            </Grid>
+
+            <Grid item xs="auto">
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                Trace Occurences
+              </Typography>
+              {this.displayTraceCountPieChart(this.state.response?.traceCount!)}
+            </Grid>
+          </Grid>
+        </Box>
       );
     } else {
       return (
@@ -179,22 +219,53 @@ export default class GraphClass extends React.Component<
     }
   }
 
-  parseReponseToAPIReponse(minertype: string): APIResponse {
-    return null;
-  }
+  handleResetCy = () => {
+    if (this.state.cyRef !== null) {
+      this.state.cyRef.reset();
+    } else {
+      console.log("Cannot reset view");
+    }
+  };
+
+  handleSaveJSON = () => {
+    if (this.state.cyRef !== null) {
+      var json = this.state.cyRef.json();
+      var jsonBlob = new Blob([JSON.stringify(json)], {type: "application/json"});
+      
+      saveAs(URL.createObjectURL(jsonBlob), "graph_data.json");
+    } else {
+      console.log("Cannot save JSON");
+    }
+  };
+
+  handleSavePNG = () => {
+    if (this.state.cyRef !== null) {
+      const options: cytoscape.ExportBlobOptions = {
+        output: 'blob',
+        full: true
+      }
+      var fileBlob = this.state.cyRef.png(options);
+      var blobURL = URL.createObjectURL(fileBlob);
+
+      saveAs(blobURL, "cytograph.png");
+
+    } else {
+      console.log("Cannot save PNG");
+    }
+  };
 
   // Create a table representing the footprintmatrix
-  displayFootprintmatrixOrError(fpm: FootprintMatrix | undefined) {
+  displayFootprintmatrix(fpm: FootprintMatrix | undefined) {
     if (fpm === undefined) {
       console.log("Footprintmatrix undefined");
       return null;
     }
     return (
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+        <Table sx={{ minWidth: "auto" }} aria-label="simple table">
           <TableHead>
             <TableRow>
-              <TableCell>Footprint Matrix</TableCell>
+              <TableCell></TableCell>
               {fpm.row.map((field) => (
                 <TableCell align="right">{field}</TableCell>
               ))}
@@ -241,7 +312,7 @@ export default class GraphClass extends React.Component<
     name: "dagre",
     rankDir: "LR",
     spacingFactor: 0.8,
-    nodeDimensionsIncludeLables: true,
+    nodeDimensionsIncludeLabels: true,
   };
 
   displayCytoGraph(
@@ -252,11 +323,20 @@ export default class GraphClass extends React.Component<
 
     return (
       <CytoscapeComponent
-        elements={this.state.response?.graph!}
+        cy={(cyElement) => {
+          if (this.state.cyRef === null) {
+            this.setState({
+              cyRef: cyElement,
+            });
+          }
+        }}
+        elements={graph}
         style={{
-          width: "900px",
+          background: "#fff",
+          width: "960px",
           height: "550px",
-          border: "2px dashed grey",
+          border: "4px dashed rgba(0, 0, 0, 0.12)",
+          alignItems: "center",
         }}
         stylesheet={[
           {
