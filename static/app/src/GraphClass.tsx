@@ -30,8 +30,10 @@ type GraphState = {
   receivedResponse: boolean;
   responseError: string;
 };
+
+// type definitons to conveniently store the api reponses
 type APIResponse = AlphaMinerReponse | null;
-// Stores all information received from alpha miner API
+
 type AlphaMinerReponse = {
   graph: cytoscape.ElementDefinition[];
   traceCount: Array<TraceCountLine>;
@@ -41,7 +43,6 @@ type AlphaMinerReponse = {
 
 type RegionMinerResponse = {};
 
-// type definitions to safely represent API values
 type FootprintMatrix = {
   dim: number;
   row: Array<string>;
@@ -50,6 +51,7 @@ type FootprintMatrix = {
 
 type TraceCountLine = [count: number, trace: Array<string>];
 
+// TODO: Check if not change to tuple as TCL ^
 type Transition = {
   from: Array<string>;
   to: Array<string>;
@@ -149,66 +151,19 @@ export default class GraphClass extends React.Component<
       console.log("Reponse obj");
       console.log(this.state.response);
 
-      cytoscape.use(dagre);
-      const layout = {
-        name: "dagre",
-        rankDir: "LR",
-        spacingFactor: 0.8,
-        nodeDimensionsIncludeLables: true,
-      };
-
       return (
         <div
           style={{ width: "100%", display: "flex", justifyContent: "center" }}
         >
-          <div>
-            <CytoscapeComponent
-              elements={CytoscapeComponent.normalizeElements(apiResponse)}
-              style={{
-                width: "900px",
-                height: "550px",
-                border: "2px dashed grey",
-              }}
-              stylesheet={[
-                {
-                  selector: "node",
-                  style: {
-                    width: 20,
-                    height: 20,
-                    label: "data(id)",
-                    shape: "ellipse",
-                  },
-                },
-                {
-                  selector: "node[shape]",
-                  style: {
-                    shape: (el) => el.data("shape") ?? "star",
-                    "text-valign": (el: any) =>
-                      el.data("shape") == "rectangle" ? "center" : "bottom",
-                    "text-halign": "center",
-                  },
-                },
-                {
-                  selector: "edge",
-                  style: {
-                    width: 1,
-                    "line-color": "#666",
-                    "target-arrow-color": "#ccc",
-                    "target-arrow-shape": "triangle",
-                    "curve-style": "bezier",
-                  },
-                },
-              ]}
-              layout={layout}
-              wheelSensitivity={0.7}
-            />
-          </div>
+          <div>{this.displayCytoGraph(this.state.response?.graph!)}</div>
           <div>
             {this.displayFootprintmatrixOrError(
               this.state.response?.footprintmatrix
             )}
           </div>
-          <div>{this.traceCountPieChart(this.state.response?.traceCount)}</div>
+          <div>
+            {this.displayTraceCountPieChart(this.state.response?.traceCount)}
+          </div>
         </div>
       );
     } else {
@@ -265,7 +220,7 @@ export default class GraphClass extends React.Component<
     );
   }
 
-  traceCountPieChart(tc: Array<TraceCountLine> | undefined) {
+  displayTraceCountPieChart(tc: Array<TraceCountLine> | undefined) {
     if (tc === undefined) {
       console.log("traceCount is undefined");
       return null;
@@ -280,5 +235,62 @@ export default class GraphClass extends React.Component<
     });
 
     return PieChart(traces, counts);
+  }
+
+  static defaultLayout: any = {
+    name: "dagre",
+    rankDir: "LR",
+    spacingFactor: 0.8,
+    nodeDimensionsIncludeLables: true,
+  };
+
+  displayCytoGraph(
+    graph: cytoscape.ElementDefinition[],
+    layout: cytoscape.LayoutOptions | undefined = GraphClass.defaultLayout
+  ) {
+    cytoscape.use(dagre);
+
+    return (
+      <CytoscapeComponent
+        elements={this.state.response?.graph!}
+        style={{
+          width: "900px",
+          height: "550px",
+          border: "2px dashed grey",
+        }}
+        stylesheet={[
+          {
+            selector: "node",
+            style: {
+              width: 20,
+              height: 20,
+              label: "data(id)",
+              shape: "ellipse",
+            },
+          },
+          {
+            selector: "node[shape]",
+            style: {
+              shape: (el) => el.data("shape") ?? "star",
+              "text-valign": (el: any) =>
+                el.data("shape") == "rectangle" ? "center" : "bottom",
+              "text-halign": "center",
+            },
+          },
+          {
+            selector: "edge",
+            style: {
+              width: 1,
+              "line-color": "#666",
+              "target-arrow-color": "#ccc",
+              "target-arrow-shape": "triangle",
+              "curve-style": "bezier",
+            },
+          },
+        ]}
+        layout={layout}
+        wheelSensitivity={0.7}
+      />
+    );
   }
 }
