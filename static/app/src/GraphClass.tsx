@@ -7,6 +7,17 @@ import SpinStretch from "react-cssfx-loading/lib/SpinStretch";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Box from "@mui/material/Box";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableContainer from "@mui/material/TableContainer";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import Paper from "@mui/material/Paper";
+import { Pie } from "react-chartjs-2";
+import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import { TabsContextValue } from "@mui/base";
+import { PieChart } from "./PieChart";
 
 type GraphProps = {
   postBody: string;
@@ -15,10 +26,11 @@ type GraphProps = {
 
 type GraphState = {
   apiResponse: any;
-  receivedResponse: Boolean;
+  response: APIResponse;
+  receivedResponse: boolean;
   responseError: string;
 };
-type APIResponse = AlphaMinerReponse | RegionMinerResponse;
+type APIResponse = AlphaMinerReponse | null;
 // Stores all information received from alpha miner API
 type AlphaMinerReponse = {
   graph: cytoscape.ElementDefinition[];
@@ -31,25 +43,22 @@ type RegionMinerResponse = {};
 
 // type definitions to safely represent API values
 type FootprintMatrix = {
-  dim: Number;
-  rows: Array<String>;
-  fields: Array<Array<String>>;
+  dim: number;
+  row: Array<string>;
+  fields: Array<Array<string>>;
 };
 
-type TraceCountLine = {
-  count: Number;
-  trace: Array<String>;
-};
+type TraceCountLine = [count: number, trace: Array<string>];
 
 type Transition = {
-  from: Array<String>;
-  to: Array<String>;
+  from: Array<string>;
+  to: Array<string>;
 };
 
 type AlphaminerSets = {
-  tl: Array<String>;
-  ti: Array<String>;
-  to: Array<String>;
+  tl: Array<string>;
+  ti: Array<string>;
+  to: Array<string>;
   xl: Array<Transition>;
   yl: Array<Transition>;
 };
@@ -63,6 +72,7 @@ export default class GraphClass extends React.Component<
 
     this.state = {
       apiResponse: null,
+      response: null,
       receivedResponse: false,
       responseError: "",
     };
@@ -78,23 +88,40 @@ export default class GraphClass extends React.Component<
 
     fetch(apiURL, requestOptions)
       .then((response) => response.json())
-      .then((data) =>
-        this.setState({
-          apiResponse: data.graph,
-          receivedResponse: true,
-          responseError: "",
-        })
-      )
+      .then((data) => this.handleFetch(data))
       .catch((error) => {
         this.setState({
           apiResponse: null,
           receivedResponse: true,
           responseError: error.toString(),
+          response: null,
         });
         console.log(
           "There was an error fetching from the API. Made request to: " + apiURL
         );
       });
+  }
+
+  handleFetch(responseJSON: any): void {
+    if (this.props.miner == "alphaminer") {
+      let fpm: FootprintMatrix = responseJSON.footprintmatrix;
+      let graph = responseJSON.graph;
+      let tracecount: Array<TraceCountLine> = responseJSON.traceCount;
+      let ams: AlphaminerSets = responseJSON.alphaminersets;
+
+      this.setState({
+        apiResponse: responseJSON.graph,
+        receivedResponse: true,
+        responseError: "",
+        response: {
+          graph: CytoscapeComponent.normalizeElements(graph),
+          traceCount: tracecount,
+          alphaminersets: ams,
+          footprintmatrix: fpm,
+        },
+      });
+    } else if (this.props.miner == "regionminer") {
+    }
   }
 
   render() {
@@ -119,6 +146,9 @@ export default class GraphClass extends React.Component<
     }
 
     if (receivedResponse && responseError === "") {
+      console.log("Reponse obj");
+      console.log(this.state.response);
+
       cytoscape.use(dagre);
       const layout = {
         name: "dagre",
@@ -131,46 +161,54 @@ export default class GraphClass extends React.Component<
         <div
           style={{ width: "100%", display: "flex", justifyContent: "center" }}
         >
-          <CytoscapeComponent
-            elements={CytoscapeComponent.normalizeElements(apiResponse)}
-            style={{
-              width: "900px",
-              height: "550px",
-              border: "2px dashed grey",
-            }}
-            stylesheet={[
-              {
-                selector: "node",
-                style: {
-                  width: 20,
-                  height: 20,
-                  label: "data(id)",
-                  shape: "ellipse",
+          <div>
+            <CytoscapeComponent
+              elements={CytoscapeComponent.normalizeElements(apiResponse)}
+              style={{
+                width: "900px",
+                height: "550px",
+                border: "2px dashed grey",
+              }}
+              stylesheet={[
+                {
+                  selector: "node",
+                  style: {
+                    width: 20,
+                    height: 20,
+                    label: "data(id)",
+                    shape: "ellipse",
+                  },
                 },
-              },
-              {
-                selector: "node[shape]",
-                style: {
-                  shape: (el) => el.data("shape") ?? "star",
-                  "text-valign": (el: any) =>
-                    el.data("shape") == "rectangle" ? "center" : "bottom",
-                  "text-halign": "center",
+                {
+                  selector: "node[shape]",
+                  style: {
+                    shape: (el) => el.data("shape") ?? "star",
+                    "text-valign": (el: any) =>
+                      el.data("shape") == "rectangle" ? "center" : "bottom",
+                    "text-halign": "center",
+                  },
                 },
-              },
-              {
-                selector: "edge",
-                style: {
-                  width: 1,
-                  "line-color": "#666",
-                  "target-arrow-color": "#ccc",
-                  "target-arrow-shape": "triangle",
-                  "curve-style": "bezier",
+                {
+                  selector: "edge",
+                  style: {
+                    width: 1,
+                    "line-color": "#666",
+                    "target-arrow-color": "#ccc",
+                    "target-arrow-shape": "triangle",
+                    "curve-style": "bezier",
+                  },
                 },
-              },
-            ]}
-            layout={layout}
-            wheelSensitivity={0.7}
-          />
+              ]}
+              layout={layout}
+              wheelSensitivity={0.7}
+            />
+          </div>
+          <div>
+            {this.displayFootprintmatrixOrError(
+              this.state.response?.footprintmatrix
+            )}
+          </div>
+          <div>{this.traceCountPieChart(this.state.response?.traceCount)}</div>
         </div>
       );
     } else {
@@ -186,11 +224,61 @@ export default class GraphClass extends React.Component<
     }
   }
 
-  parseReponseToAPIReponse (minertype: string): APIResponse {
-    const resp: RegionMinerResponse = {
+  parseReponseToAPIReponse(minertype: string): APIResponse {
+    return null;
+  }
 
+  // Create a table representing the footprintmatrix
+  displayFootprintmatrixOrError(fpm: FootprintMatrix | undefined) {
+    if (fpm === undefined) {
+      console.log("Footprintmatrix undefined");
+      return null;
+    }
+    return (
+      <TableContainer component={Paper}>
+        <Table sx={{ minWidth: 650 }} aria-label="simple table">
+          <TableHead>
+            <TableRow>
+              <TableCell>Footprint Matrix</TableCell>
+              {fpm.row.map((field) => (
+                <TableCell align="right">{field}</TableCell>
+              ))}
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {fpm.fields.map((line, index) => (
+              <TableRow
+                key={fpm.row[index]}
+                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+              >
+                <TableCell component="th" scope="row">
+                  {fpm.row[index]}
+                </TableCell>
+                {line.map((field) => (
+                  <TableCell align="right">{field}</TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
+    );
+  }
+
+  traceCountPieChart(tc: Array<TraceCountLine> | undefined) {
+    if (tc === undefined) {
+      console.log("traceCount is undefined");
+      return null;
     }
 
-    return resp;
+    var traces: string[] = [];
+    var counts: number[] = [];
+
+    tc.forEach((line) => {
+      traces.push("<" + line[1].join(",") + ">");
+      counts.push(line[0]);
+    });
+
+    return PieChart(traces, counts);
   }
 }

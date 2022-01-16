@@ -105,13 +105,13 @@ data FootprintMatrix = FootprintMatrix {
 
 instance ToJSON FootprintMatrix where
     toJSON (FootprintMatrix d r xss)
-        = object ["dim" .= d, "rows" .= r, "fields" .= xss]
+        = object ["dim" .= d, "row" .= r, "fields" .= xss]
 
 instance FromJSON FootprintMatrix where
     parseJSON (Object v) = do
         fpm <- v .: "footprintmatrix"
         d <- fpm .: "dim"
-        rs <- fpm .: "rows"
+        rs <- fpm .: "row"
         xss <- fpm .: "fields"
         return $ FootprintMatrix d rs xss
     parseJSON _ = empty
