@@ -2,7 +2,8 @@
 # See https://github.com/yesodweb/yesod/wiki/Configuration#overriding-configuration-values-with-environment-variables
 
 static-dir:     "_env:YESOD_STATIC_DIR:static"
-host:           "_env:YESOD_HOST:*4" # any IPv4 host
+#host:           "_env:YESOD_HOST:*4" # any IPv4 host
+host:           "::" # server specific host; not using _env variable to avoid using keter; above option should be preferred
 port:           "_env:YESOD_PORT:8002" # NB: The port `yesod devel` uses is distinct from this value. Set the `yesod devel` port from the command line.
 ip-from-header: "_env:YESOD_IP_FROM_HEADER:true"
 
