@@ -1,6 +1,3 @@
-# Values formatted like "_env:YESOD_ENV_VAR_NAME:default_value" can be overridden by the specified environment variable.
-# See https://github.com/yesodweb/yesod/wiki/Configuration#overriding-configuration-values-with-environment-variables
-
 static-dir:     "_env:YESOD_STATIC_DIR:static"
 #host:           "_env:YESOD_HOST:*4" # any IPv4 host
 host:           "::" # server specific host; not using _env variable to avoid using keter; above option should be preferred
@@ -26,5 +23,5 @@ ip-from-header: "_env:YESOD_IP_FROM_HEADER:true"
 # mutable-static: false
 # skip-combining: false
 
-copyright: Insert copyright statement here
+copyright: copyright statement
 #analytics: UA-YOURCODE

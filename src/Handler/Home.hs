@@ -15,7 +15,6 @@ data FileForm = FileForm
     , fileDescription :: Text
     }
 
-
 getAltHomeR :: Handler Html
 getAltHomeR = do
     defaultLayout $ do
@@ -46,7 +45,6 @@ sampleForm = renderBootstrap3 BootstrapBasicForm $ FileForm
 
 commentIds :: (Text, Text, Text)
 commentIds = ("js-commentForm", "js-createCommentTextarea", "js-commentList")
-
 
 getTestminerR :: Handler Html
 getTestminerR = do

@@ -18,10 +18,6 @@ import qualified Yesod.Core.Unsafe as Unsafe
 import qualified Data.CaseInsensitive as CI
 import qualified Data.Text.Encoding as TE
 
--- | The foundation datatype for your application. This can be a good place to
--- keep settings and values requiring initialization before your application
--- starts running, such as database connections. Every handler will have
--- access to the data present here.
 data App = App
     { appSettings    :: AppSettings
     , appStatic      :: Static -- ^ Settings for static file serving.
@@ -39,15 +35,6 @@ data MenuTypes
     = NavbarLeft MenuItem
     | NavbarRight MenuItem
 
--- This is where we define all of the routes in our application. For a full
--- explanation of the syntax, please see:
--- http://www.yesodweb.com/book/routing-and-handlers
---
--- Note that this is really half the story; in Application.hs, mkYesodDispatch
--- generates the rest of the code. Please see the following documentation
--- for an explanation for this split:
--- http://www.yesodweb.com/book/scaffolding-and-the-site-template#scaffolding-and-the-site-template_foundation_and_application_modules
---
 -- This function also generates the following type synonyms:
 -- type Handler = HandlerFor App
 -- type Widget = WidgetFor App ()
@@ -118,11 +105,7 @@ instance Yesod App where
         pc <- widgetToPageContent $ do
             addStylesheet $ StaticR css_bootstrap_css
             $(widgetFile "default-layout")
-        {-
-        pc <- widgetToPageContent $ do
-            addStylesheet $ StaticR css_bootstrap_css
-            $(combineScripts 'StaticR [app_dist_bundle_js])
-        -}
+
         withUrlRenderer $(hamletFile "templates/default-layout-wrapper.hamlet")
 
     isAuthorized
@@ -200,11 +183,3 @@ instance HasHttpManager App where
 
 unsafeHandler :: App -> Handler a -> IO a
 unsafeHandler = Unsafe.fakeHandlerGetLogger appLogger
-
--- Note: Some functionality previously present in the scaffolding has been
--- moved to documentation in the Wiki. Following are some hopefully helpful
--- links:
---
--- https://github.com/yesodweb/yesod/wiki/Sending-email
--- https://github.com/yesodweb/yesod/wiki/Serve-static-files-from-a-separate-domain
--- https://github.com/yesodweb/yesod/wiki/i18n-messages-in-the-scaffolding

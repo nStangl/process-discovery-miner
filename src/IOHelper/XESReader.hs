@@ -24,6 +24,8 @@ readXESFileError = "An error occured trying to read the file! This might be caus
 readXESError :: String
 readXESError = "An error occured trying to parse the xml! Make sure it is a valid xml document and is defined as seen in the example."
 
+-- | Read the XES file at given file.
+-- Path can lead to in-memory file or a temporary file depending on file size.
 readXESFile :: String -> IO (Either String EventLog)
 readXESFile path = do
     strOrExce <- try $ readFile path :: IO (Either SomeException String)
@@ -35,17 +37,19 @@ readXESFile path = do
                 Left err -> Left err
                 Right elog -> Right elog
 
+-- | Read the XES files contens from a XmlSource
 readXES :: XmlSource s => s-> Either String EventLog
 readXES raw =
     case parseXMLDoc raw of
         Nothing -> Left readXESError
         Just doc -> do
             let traces = findTraces doc
-            -- let (isLife, ats) = isLifecycleExtension doc
+            -- TODO: Replace?
             if True
                 then Right $ map ((mapMaybe getActivityFromEvent . mapMaybe filterEventForLifecycle) . findEvents) traces
                 else Right $ map (mapMaybe getActivityFromEvent . findEvents) traces
 
+-- | TODO: remove
 readTest :: String -> IO (Bool, [String])
 readTest path = do
     s <- readFile path
@@ -53,7 +57,6 @@ readTest path = do
         Nothing -> return (False, ["error"])
         Just doc -> return $ isLifecycleExtension doc
 
--- <string key="lifecycle:transition" value="complete"/>
 -- | Checks if the lifecycle extension is being set
 isLifecycleExtension :: Element -> (Bool, [String])
 isLifecycleExtension _ = do
@@ -67,12 +70,15 @@ isTimestampSet event = case line event of
     where
         line = filterChild (\x -> qName (elName x) == "date" && attrVal (head (elAttribs x)) == "time:timestamp")
 
+-- | Given the <log..> element, find all it's child <trace..> elements
 findTraces :: Element -> [Element]
 findTraces = filterChildren (\e -> qName (elName e) == "trace")
 
+-- | Given a <trace..> element, find all it's child <event..> elements
 findEvents :: Element -> [Element]
 findEvents = filterChildren (\e -> qName (elName e) == "event")
 
+-- | Extract the activity name from a given Element
 getActivityFromEvent :: Element -> Maybe String
 getActivityFromEvent e = line e >>= value
     where
@@ -90,6 +96,7 @@ filterEventForLifecycle eve = case line eve of
     where
         line = filterChild (\e -> qName (elName e) == "string" && attrVal (head (elAttribs e)) == "lifecycle:transition")
 
+-- | TODO: Leave in or replace?
 getEventLines :: Element -> [(String, String, String)]
 getEventLines event = do
     let typef = qName . elName

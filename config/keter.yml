@@ -62,9 +62,3 @@ stanzas:
 # copy-to-args:
 #   - "-l 1024"
 #   - "-P 2222"
-
-# If you would like to have Keter automatically create a PostgreSQL database
-# and set appropriate environment variables for it to be discovered, uncomment
-# the following line.
-# plugins:
-#   postgres: true

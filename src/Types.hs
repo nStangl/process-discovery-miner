@@ -1,4 +1,10 @@
 {-# LANGUAGE OverloadedStrings #-}
+
+-- Type definitions to conveniently represent types and (partial) results of the miner.
+-- Also contains ToJSON and FromJSON instances.
+-- Note that the FromJSON instances are not actually used anywhere, 
+-- but defined if needed.
+
 module Types
      where
 
@@ -6,7 +12,7 @@ import Data.Aeson
 import Control.Applicative ( Alternative(empty) )
 import Data.Text ()
 
-type EventLog = [Trace] {- == [[String]] -}
+type EventLog = [Trace] -- equivalent to [[String]]
 type Trace = [Activity]
 type Activity = String
 type Transition = ([Activity], [Activity])
@@ -55,16 +61,6 @@ data CytoGraph = CytoGraph {
 
 instance ToJSON CytoGraph where
     toJSON (CytoGraph ns es) = object ["nodes" .= ns, "edges" .= es]
-{-
-The FromJSON instance is not used.
-Both representation would be possible. If it were used allow for both syntaxes.
-instance FromJSON CytoGraph where
-    parseJSON (Object v) = do
-        ns <- v .: "nodes"
-        es <-  v .: "edges"
-        return CytoGraph { nodes = ns, edges = es }
-    parseJSON _ = empty
--}
 
 instance FromJSON CytoGraph where
     parseJSON (Object v) = do
