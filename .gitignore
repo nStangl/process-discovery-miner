@@ -21,9 +21,9 @@ cabal.sandbox.config
 process-miner.cabal
 
 ## Dont push log files ##
-datalogs/*
-!datalogs/install.sh
-!datalogs/delete.sh
+test/logs/*
+!test/logs/install.sh
+!test/logs/delete.sh
 
 ## react ##
 .DS_*

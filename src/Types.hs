@@ -11,11 +11,29 @@ module Types
 import Data.Aeson
 import Control.Applicative ( Alternative(empty) )
 import Data.Text ()
+import qualified Data.Set as Set
+import Data.Bifunctor ( Bifunctor(bimap) )
 
 type EventLog = [Trace] -- equivalent to [[String]]
 type Trace = [Activity]
 type Activity = String
 type Transition = ([Activity], [Activity])
+
+type CmpTransitionList = Set.Set CmpTransition
+
+toCmpTransitionList :: [Transition] -> CmpTransitionList
+toCmpTransitionList = Set.fromList . map toCmpTransition
+
+fromCmpTransitionList :: CmpTransitionList -> [Transition]
+fromCmpTransitionList = map fromCmpTransition . Set.toList
+
+type CmpTransition = (Set.Set Activity, Set.Set Activity)
+
+toCmpTransition :: Transition -> CmpTransition
+toCmpTransition = Data.Bifunctor.bimap Set.fromList Set.fromList
+
+fromCmpTransition :: CmpTransition -> Transition
+fromCmpTransition = Data.Bifunctor.bimap Set.toList Set.toList
 
 data CytoNode = CytoNode {
     nodeID :: String,

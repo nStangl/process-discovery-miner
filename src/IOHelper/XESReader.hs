@@ -1,7 +1,9 @@
 module IOHelper.XESReader
     ( readXESFile,
       readXES,
-      readTest
+      countTraces,
+      readTest,
+      testFunc
     )
     where
 
@@ -17,6 +19,11 @@ import Data.Maybe ( mapMaybe )
 import Types
 import Text.XML.Light.Lexer (XmlSource)
 import Control.Exception ( try, SomeException )
+import Control.Arrow ( Arrow((&&&)) )
+import Data.List (sortBy, group, sort, nub)
+import Data.Function (on)
+import Miner.AlphaMiner (xLBruteForceLists, yLLists)
+
 
 readXESFileError :: String
 readXESFileError = "An error occured trying to read the file! This might be caused by a wrong encoding."
@@ -56,6 +63,21 @@ readTest path = do
     case parseXMLDoc s of
         Nothing -> return (False, ["error"])
         Just doc -> return $ isLifecycleExtension doc
+
+testFunc :: String -> IO ()
+testFunc s = do
+    elog <- readXESFile s
+    case elog of 
+        Left _ -> print ""
+        Right l -> do
+            print "EventLog (nubbed)"
+            print $ nub l
+            print "xL"
+            print $ xLBruteForceLists l
+            print "yl"
+            print $ yLLists $ xLBruteForceLists l
+
+
 
 -- | Checks if the lifecycle extension is being set
 isLifecycleExtension :: Element -> (Bool, [String])
@@ -104,3 +126,12 @@ getEventLines event = do
     let valuef e = attrVal (elAttribs e !! 1)
 
     fmap (\x -> (typef x, keyf x, valuef x)) (elChildren event)
+
+countTraces :: EventLog -> [(Int, Trace)]
+countTraces = sorted . frequency
+
+frequency :: Ord a => [a] -> [(Int,a)]
+frequency =  map (length &&& head) . group . sort
+
+sorted :: Ord a => [(Int, a)] -> [(Int,a)]
+sorted = sortBy (flip compare `on` fst)

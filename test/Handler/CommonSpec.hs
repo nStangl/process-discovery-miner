@@ -2,6 +2,7 @@ module Handler.CommonSpec (spec) where
 
 import TestImport
 
+-- check if all static ressources can be found and served
 spec :: Spec
 spec = withApp $ do
     describe "robots.txt" $ do
@@ -14,4 +15,12 @@ spec = withApp $ do
     describe "favicon.ico" $ do
         it "gives a 200" $ do
             get FaviconR
+            statusIs 200
+    describe "bundle.js" $ do
+        it "gives a 200" $ do
+            get BundleJSR
+            statusIs 200
+    describe "mainfest.json" $ do
+        it "gives a 200" $ do
+            get ManifestR
             statusIs 200

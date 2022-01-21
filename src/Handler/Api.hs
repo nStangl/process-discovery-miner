@@ -14,8 +14,8 @@ import qualified Data.HashMap.Strict as HMS
 import Types
 import Miner.AlphaMiner
 import Miner.RegionMiner ()
-import IOHelper.XESReader ( readXES )
-import LogAnalyzer ( countTraces )
+import IOHelper.XESReader ( readXES, countTraces )
+import Data.List ( nub )
 
 postAlphaminerV1R :: Handler Value
 postAlphaminerV1R =  do
@@ -27,10 +27,11 @@ postAlphaminerV1R =  do
     case logOrErr of
         Left err -> invalidArgs [pack err]
         Right elog -> do
-            let cytoGraph = expToCytoGraph elog (alphaMiner elog)
+            let elog' = nub elog
+            let cytoGraph = expToCytoGraph elog' (alphaMiner elog')
             let traceCount = countTraces elog
-            let ams = alphaminersets elog
-            let fpm = createFpMatrix elog
+            let ams = alphaminersets elog'
+            let fpm = createFpMatrix elog'
             return $ alphaminerResp cytoGraph traceCount ams fpm
 
 -- Pack all values from the alphaminer into a (JSON) Value

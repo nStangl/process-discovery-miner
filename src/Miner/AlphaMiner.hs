@@ -54,15 +54,13 @@ xLBruteForceLists l = filter (uncurry (xLFilter causal choice)) (getAllPermu xs 
         xs = Set.toList $ tL l
 
 -- | Filter condition for xL
--- TODO: optimise two elem calls into one
 xLFilter :: [(Activity, Activity)] -> [(Activity, Activity)] -> [Activity] -> [Activity] -> Bool
 xLFilter causal choice as bs = cond1 as bs && cond2 as && cond2 bs
     where
         cond1 xs ys = and [(x,y) `elem` causal| x<-xs, y<-ys]
         cond2 xs = and [ elem (x1,x2) choice || elem (x1,x2) choice | (x1,x2) <- allPairs xs]
 
-
-yLLists :: [([Activity], [Activity])] -> [Transition]
+yLLists :: [Transition] -> [Transition]
 yLLists xs = xs \\ toRemove
     where
         subset x = filter (/= x) (getAllPermuPairs x)
