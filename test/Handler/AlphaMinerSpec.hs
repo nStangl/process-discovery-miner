@@ -8,9 +8,24 @@ import Miner.AlphaMiner
 import TestData
 import qualified Data.Set as Set
 import IOHelper.XESReader
+import Data.Bifunctor ( Bifunctor(bimap) )
 
 
+type CmpTransitionList = Set.Set CmpTransition
 
+toCmpTransitionList :: [Transition] -> CmpTransitionList
+toCmpTransitionList = Set.fromList . map toCmpTransition
+
+fromCmpTransitionList :: CmpTransitionList -> [Transition]
+fromCmpTransitionList = map fromCmpTransition . Set.toList
+
+type CmpTransition = (Set.Set Activity, Set.Set Activity)
+
+toCmpTransition :: Transition -> CmpTransition
+toCmpTransition = Data.Bifunctor.bimap Set.fromList Set.fromList
+
+fromCmpTransition :: CmpTransition -> Transition
+fromCmpTransition = Data.Bifunctor.bimap Set.toList Set.toList
 
 spec :: Spec
 spec = do
@@ -149,7 +164,7 @@ testParseEventLog l elog =  parsedEventLog `shouldReturn` Right (Set.fromList el
             Right r -> Right $ Set.fromList r
 
 testxL :: EventLog -> [Transition] -> Expectation
-testxL elog tsShould = (toCmpTransitionList tsIs) `shouldBe` toCmpTransitionList tsShould
+testxL elog tsShould = toCmpTransitionList tsIs `shouldBe` toCmpTransitionList tsShould
     where
         tsIs = xLBruteForceLists elog
 
