@@ -10,7 +10,8 @@ import qualified Data.Set as Set
 import IOHelper.XESReader
 import Data.Bifunctor ( Bifunctor(bimap) )
 
-
+-- Type alias for convinient check by Eq (equality)
+-- Sets are considered equal independent of the order of their elements
 type CmpTransitionList = Set.Set CmpTransition
 
 toCmpTransitionList :: [Transition] -> CmpTransitionList
@@ -29,35 +30,12 @@ fromCmpTransition = Data.Bifunctor.bimap Set.toList Set.toList
 
 spec :: Spec
 spec = do
-    -- Verbose, but if failure shows exactly what log is missing
+    -- Returns true if all logs from [1] are in the /test/logs/ directory
+    -- [1]: https://lehre.bpm.in.tum.de/~pm-prak/
     describe "Check if all Logs are present" $ do
-{-
-        it "L1 exists" $ do
-            testExist "L1"
-        it "L2 exists" $ do
-            testExist "L2"
-        it "L3 exists" $ do
-            testExist "L3"
-        it "L4 exists" $ do
-            testExist "L4"
-        it "L5 exists" $ do
-            testExist "L5"
-        it "L6 exists" $ do
-            testExist "L6"
-        it "L7 exists" $ do
-            testExist "L7"
-        it "posterinstances exists" $ do
-            testExist "posterinstances"
-        it "running-example exists" $ do
-            testExist "running-example"
-        it "billinstances exists" $ do
-            testExist "billinstances"
-        it "flyerinstances exists" $ do
-            testExist "flyerinstances"
--}
         it "L1-L7, running-example, flyer-,bill-,posterinst exist" $ do
             allLogsPresent `shouldReturn` True
-    
+    -- Tests if the parser yields the same EventLog's as defined in TestData
     describe "Parsing EventLog from File" $ do
         it "L1 parses correctly" $ do
             testParseEventLog "L1" getLog1
@@ -75,8 +53,7 @@ spec = do
             testParseEventLog "L7" getLog7
 
     -- Testing the order relations could probably be realised with QuickCheck.
-    -- Not testing on many logs and being rather simple implementations,
-    -- this should be fine. (Also I am bad with QuickCheck)
+    -- But I am bad with QuickCheck and implementation is trivial
     describe "Testing order relations" $ do
         describe "order follow directly" $ do
             it "L1" $ do
@@ -163,11 +140,13 @@ testParseEventLog l elog =  parsedEventLog `shouldReturn` Right (Set.fromList el
             Left  s -> Left s
             Right r -> Right $ Set.fromList r
 
+-- | Test xL implementation
 testxL :: EventLog -> [Transition] -> Expectation
 testxL elog tsShould = toCmpTransitionList tsIs `shouldBe` toCmpTransitionList tsShould
     where
         tsIs = xLBruteForceLists elog
-
+        
+-- | Tests yL implementation
 testyL :: EventLog -> [Transition] -> Expectation
 testyL elog tsShould = tsIs `shouldBe` toCmpTransitionList tsShould
     where

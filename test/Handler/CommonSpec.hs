@@ -2,7 +2,7 @@ module Handler.CommonSpec (spec) where
 
 import TestImport
 
--- check if all static ressources can be found and served
+-- Check if all static ressources can be found and served
 spec :: Spec
 spec = withApp $ do
     describe "robots.txt" $ do
