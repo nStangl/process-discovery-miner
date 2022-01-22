@@ -11,7 +11,7 @@ import Toolbar from "@mui/material/Toolbar";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import { InfoDialog, AboutDialog } from "./Dialog";
 import { CssBaseline } from "@mui/material";
-import MinerClass from "./MainUpload";
+import MainUpload from "./MainUpload";
 
 export default function App() {
   return (
@@ -19,7 +19,7 @@ export default function App() {
       <CssBaseline>
         <Box sx={{ flexGrow: 1 }}>
           <CustomAppBar />
-          <MinerClass />
+          <MainUpload />
           <Copyright />
         </Box>
       </CssBaseline>

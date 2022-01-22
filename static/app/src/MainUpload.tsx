@@ -2,15 +2,15 @@ import React, { useState } from "react";
 import Box from "@mui/material/Box";
 import { DropzoneAreaBase, FileObject } from "material-ui-dropzone";
 
-import GraphClass from "./MainProcessResult";
+import MainProcessResult from "./MainProcessResult";
 
-type MyProps = {};
-type MyState = {
+type MainUploadProps = {};
+type MainUploadState = {
   files: FileObject[];
   dataString: string;
 };
 
-export default class MinerClass extends React.Component<MyProps, MyState> {
+export default class MainUpload extends React.Component<MainUploadProps, MainUploadState> {
   constructor(props: any) {
     super(props);
 
@@ -76,9 +76,9 @@ export default class MinerClass extends React.Component<MyProps, MyState> {
       let dataString = "";
       try {
         if (typeof this.state.files[0].data === "string") {
-          if (this.state.files[0].data.match(MinerClass.regxRemoveMD)) {
+          if (this.state.files[0].data.match(MainUpload.regxRemoveMD)) {
             dataString = this.state.files[0].data.replace(
-              MinerClass.regxRemoveMD,
+              MainUpload.regxRemoveMD,
               ""
             );
           }
@@ -95,7 +95,7 @@ export default class MinerClass extends React.Component<MyProps, MyState> {
         // TODO Handle error by giving proper message!
       }
 
-      return <GraphClass postBody={dataString} miner={"alphaminer"} />;
+      return <MainProcessResult postBody={dataString} miner={"alphaminer"} />;
     }
   }
 

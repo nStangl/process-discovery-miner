@@ -21,12 +21,12 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { saveAs } from "file-saver";
 
-type GraphProps = {
+type ProcessResultProps = {
   postBody: string;
   miner: string;
 };
 
-type GraphState = {
+type ProcessResultState = {
   response: APIResponse;
   responseError: string;
   cyRef: cytoscape.Core | null;
@@ -67,9 +67,9 @@ type AlphaminerSets = {
   yl: Array<Transition>;
 };
 
-export default class GraphClass extends React.Component<
-  GraphProps,
-  GraphState
+export default class MainProcessResult extends React.Component<
+ProcessResultProps,
+ProcessResultState
 > {
   constructor(props: any) {
     super(props);
@@ -313,7 +313,7 @@ export default class GraphClass extends React.Component<
   // Display and return the Cytoscape canvas to show the graph
   displayCytoGraph(
     graph: cytoscape.ElementDefinition[],
-    layout: cytoscape.LayoutOptions | undefined = GraphClass.defaultLayout
+    layout: cytoscape.LayoutOptions | undefined = MainProcessResult.defaultLayout
   ) {
     // Tell cytoscape to use the layout. Don't forget!
     cytoscape.use(dagre);

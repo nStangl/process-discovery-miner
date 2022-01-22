@@ -57,24 +57,24 @@ spec = do
     describe "Testing order relations" $ do
         describe "order follow directly" $ do
             it "L1" $ do
-                Set.fromList getLog1OrdFollowDir `shouldBe` ordFollowDir getLog1
+                testOrdRel (ordFollowDir getLog1) getLog1OrdFollowDir
             it "L2" $ do
-                Set.fromList getLog2OrdFollowDir `shouldBe` ordFollowDir getLog2
+                testOrdRel (ordFollowDir getLog2) getLog2OrdFollowDir
         describe "order causal" $ do
             it "L1" $ do
-                Set.fromList getLog1OrdCausal `shouldBe` ordCausal getLog1
+                testOrdRel (ordCausal getLog1) getLog1OrdCausal
             it "L2" $ do
-                Set.fromList getLog2OrdCausal `shouldBe` ordCausal getLog2
+                testOrdRel (ordCausal getLog2) getLog2OrdCausal
         describe "order choice" $ do
             it "L1" $ do
-                Set.fromList getLog1OrdChoice `shouldBe` ordChoice getLog1
+                testOrdRel (ordChoice getLog1) getLog1OrdChoice
             it "L2" $ do
-                Set.fromList getLog2OrdChoice `shouldBe` ordChoice getLog2
+                testOrdRel (ordChoice getLog2) getLog2OrdChoice
         describe "order parallel" $ do
             it "L1" $ do
-                Set.fromList getLog1OrdParallel `shouldBe` ordParallel getLog1
+                testOrdRel (ordParallel getLog1) getLog1OrdParallel
             it "L2" $ do
-                Set.fromList getLog2OrdParallel `shouldBe` ordParallel getLog2
+                testOrdRel (ordParallel getLog2) getLog2OrdParallel
 
     describe "Testing xL" $ do
         it "L1" $ do
@@ -140,17 +140,20 @@ testParseEventLog l elog =  parsedEventLog `shouldReturn` Right (Set.fromList el
             Left  s -> Left s
             Right r -> Right $ Set.fromList r
 
+testOrdRel :: [(Activity,Activity)] -> [(Activity,Activity)] -> Expectation
+testOrdRel is should = Set.fromList is `shouldBe` Set.fromList should
+
 -- | Test xL implementation
 testxL :: EventLog -> [Transition] -> Expectation
 testxL elog tsShould = toCmpTransitionList tsIs `shouldBe` toCmpTransitionList tsShould
     where
-        tsIs = xLBruteForceLists elog
+        tsIs = xL elog
         
 -- | Tests yL implementation
 testyL :: EventLog -> [Transition] -> Expectation
 testyL elog tsShould = tsIs `shouldBe` toCmpTransitionList tsShould
     where
-        tsIs =  toCmpTransitionList $ yLLists $ xLBruteForceLists elog
+        tsIs =  toCmpTransitionList $ yL $ xL elog
         
 logs :: [FilePath]
 logs = map toFilePath logs'
