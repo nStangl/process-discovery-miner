@@ -12,13 +12,10 @@ import Data.Aeson
 import Control.Applicative ( Alternative(empty) )
 import Data.Text ()
 
-
 type EventLog = [Trace] -- equivalent to [[String]]
 type Trace = [Activity]
 type Activity = String
 type Transition = ([Activity], [Activity])
-
-
 
 data CytoNode = CytoNode {
     nodeID :: String,

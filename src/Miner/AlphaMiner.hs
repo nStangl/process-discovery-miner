@@ -11,47 +11,47 @@ import Data.Bifunctor ( Bifunctor(bimap) )
 import Data.Function ( on )
 import ClassyPrelude ( fromMaybe )
 
-ordFollowDir :: EventLog -> Set.Set (Activity, Activity)
-ordFollowDir = Set.fromList . concatMap (\t -> zip t (tail t))
+ordFollowDir :: EventLog -> [(Activity, Activity)]
+ordFollowDir = nub . concatMap (\t -> zip t (tail t))
 
-ordCausal :: EventLog -> Set.Set (Activity, Activity)
+ordCausal :: EventLog -> [(Activity, Activity)]
 ordCausal l =
     let s = ordFollowDir l
-    in Set.filter (\x -> Set.notMember (swap x) s) s
+    in nub (filter ((`notElem` s) . swap) s)
 
-ordChoice :: EventLog -> Set.Set (Activity, Activity)
+ordChoice :: EventLog -> [(Activity, Activity)]
 ordChoice l =
     let
-        ele = Set.toList $ tL l
+        ele = tL l
         ids = map (\x -> (x,x)) ele
-        xs = Set.toList (ordFollowDir l)
-    in Set.fromList $ ((allPairs ele \\ xs) \\ map swap xs) ++ ids
+        xs = ordFollowDir l
+    in nub $ ((allPairs ele \\ xs) \\ map swap xs) ++ ids
 
-ordParallel :: EventLog -> Set.Set (Activity, Activity)
+ordParallel :: EventLog -> [(Activity, Activity)]
 ordParallel l =
     let s = ordFollowDir l
-    in Set.filter (\x -> Set.member (swap x) s) s
+    in nub $ filter (\x -> swap x `elem` s) s
 
-tL :: EventLog -> Set.Set Activity
-tL = Set.fromList . concat
+tL :: EventLog -> Trace
+tL = nub . concat
 
-tI :: EventLog -> Set.Set Activity
-tI = Set.fromList . map head
+tI :: EventLog -> Trace
+tI = nub . map head
 
-tO :: EventLog -> Set.Set Activity
-tO = Set.fromList . map last
+tO :: EventLog -> Trace
+tO = nub . map last
 
-xL :: EventLog -> Set.Set (Set.Set Activity, Set.Set Activity)
-xL l = Set.fromList $ map (Data.Bifunctor.bimap Set.fromList Set.fromList) xs
-    where xs = xLBruteForceLists l
+xLSet :: EventLog -> Set.Set (Set.Set Activity, Set.Set Activity)
+xLSet l = Set.fromList $ map (Data.Bifunctor.bimap Set.fromList Set.fromList) xs
+    where xs = xL l
 
 -- | Much bruteforce, very wow
-xLBruteForceLists :: EventLog -> [Transition]
-xLBruteForceLists l = filter (uncurry (xLFilter causal choice)) (getAllPermu xs xs)
+xL :: EventLog -> [Transition]
+xL l = filter (uncurry (xLFilter causal choice)) (getAllPermu xs xs)
     where
-        causal = Set.toList $ ordCausal l
-        choice = Set.toList $ ordChoice l
-        xs = Set.toList $ tL l
+        causal = ordCausal l
+        choice = ordChoice l
+        xs = tL l
 
 -- | Filter condition for xL
 xLFilter :: [(Activity, Activity)] -> [(Activity, Activity)] -> [Activity] -> [Activity] -> Bool
@@ -60,24 +60,25 @@ xLFilter causal choice as bs = cond1 as bs && cond2 as && cond2 bs
         cond1 xs ys = and [(x,y) `elem` causal| x<-xs, y<-ys]
         cond2 xs = and [ elem (x1,x2) choice || elem (x1,x2) choice | (x1,x2) <- allPairs xs]
 
-yLLists :: [Transition] -> [Transition]
-yLLists xs = xs \\ toRemove
+yL :: [Transition] -> [Transition]
+yL xs = xs \\ toRemove
     where
         subset x = filter (/= x) (getAllPermuPairs x)
         toRemove = concatMap subset xs
 
+-- | Take result of yL and add Start and end transitions
 alphaMiner :: EventLog -> [Transition]
 alphaMiner elog = start ++ transitions ++ end
     where
-        start = map (\x -> (["start"], [x])) (Set.toList (tI elog))
-        end = map (\x -> ([x], ["end"])) (Set.toList (tO elog))
-        transitions = yLLists $ xLBruteForceLists elog
+        start = map (\x -> (["start"], [x])) (tI elog)
+        end = map (\x -> ([x], ["end"])) (tO elog)
+        transitions = yL $ xL elog
 
 -- | Takes the EventLog and result of the alphaMiner and returns a CytoGraph
 expToCytoGraph :: EventLog -> [Transition] -> CytoGraph
 expToCytoGraph elog ts = CytoGraph nodes' edges'
     where
-        nodes1 = CytoNode "start" "ellipse" : CytoNode "end" "ellipse" : map (`CytoNode` "rectangle") (Set.toList (tL elog))
+        nodes1 = CytoNode "start" "ellipse" : CytoNode "end" "ellipse" : map (`CytoNode` "rectangle") (tL elog)
         (startend, ts') = partition containsStartEnd ts
         edges1 = map transformStartEndEdges startend
         edges2Fs = fmap transformEdges ts'
@@ -86,15 +87,16 @@ expToCytoGraph elog ts = CytoGraph nodes' edges'
         edges'' = concat (edges1 ++ edges2)
         edges' = fmap (\(e, i) -> e { edgeID = "e" ++ show i}) (zip edges'' ([0..] :: [Integer]))
 
+-- | Calculates all sets used within/for the alphaminer
 alphaminersets :: EventLog -> AlphaMinerSets
 alphaminersets elog = do
-    let xl' = xLBruteForceLists elog
+    let xl' = xL elog
     AlphaMinerSets {
-        tl= Set.toList $ tL elog,
-        ti= Set.toList $ tI elog,
-        to= Set.toList $ tO elog,
+        tl= tL elog,
+        ti= tI elog,
+        to= tO elog,
         xl= xl' ,
-        yl= yLLists xl'}
+        yl= yL xl'}
 
 -- | Creates a FootprintMatrix from given EventLog
 createFpMatrix :: EventLog -> FootprintMatrix
@@ -108,16 +110,16 @@ createFpMatrix elog = do
 
     -- Create ordering relations; then
     -- index Activity based on ordering
-    let ordCaus = indexActivities indexer $ Set.toList $ ordCausal elog
+    let ordCaus = indexActivities indexer $ ordCausal elog
     let ordCausR = fAddStr (map swap ordCaus) "<-"
     let ordCaus' = fAddStr ordCaus "->"
 
-    let ordChoi = Set.toList $ ordChoice elog
+    let ordChoi = ordChoice elog
     let ordChoi' = fAddStr (indexActivities indexer ordChoi) "#"
 
-    let ordPar = Set.toList $ ordParallel elog
+    let ordPar = ordParallel elog
     let ordPar' = fAddStr(indexActivities indexer ordPar) "||"
-    
+
     let xs = concat [ordCaus', ordCausR, ordPar', ordChoi']
     -- sort and group them based on postiton tuple
     let groupFirst = sortAndGroupBy (fst .fst) xs
@@ -144,11 +146,13 @@ containsStartEnd (["start"], _) = True
 containsStartEnd (_, ["end"]) = True
 containsStartEnd _ = False
 
+-- | Transform Transitions that contain start or end to CytoEdges
 transformStartEndEdges :: Transition -> [CytoEdge]
 transformStartEndEdges (["start"], rs) = map (\r -> CytoEdge "__" "start" r "triangle") rs
 transformStartEndEdges (ls, ["end"]) = map (\l -> CytoEdge "__" l "end" "triangle") ls
-transformStartEndEdges _ = undefined
+transformStartEndEdges _ = []
 
+-- | Transform Transition to CytoEdge and their corresponding required CytoNodes
 transformEdges :: Transition -> Int -> ([CytoEdge], CytoNode)
 transformEdges (ls, rs) i =
     let place = "p" ++ show i

@@ -22,7 +22,7 @@ import Control.Exception ( try, SomeException )
 import Control.Arrow ( Arrow((&&&)) )
 import Data.List (sortBy, group, sort, nub)
 import Data.Function (on)
-import Miner.AlphaMiner (xLBruteForceLists, yLLists)
+import Miner.AlphaMiner (xL, yL)
 
 
 readXESFileError :: String
@@ -73,9 +73,9 @@ testFunc s = do
             print "EventLog (nubbed)"
             print $ nub l
             print "xL"
-            print $ xLBruteForceLists l
+            print $ xL l
             print "yl"
-            print $ yLLists $ xLBruteForceLists l
+            print $ yL $ xL l
 
 
 

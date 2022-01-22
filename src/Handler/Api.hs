@@ -34,7 +34,7 @@ postAlphaminerV1R =  do
             let fpm = createFpMatrix elog'
             return $ alphaminerResp cytoGraph traceCount ams fpm
 
--- Pack all values from the alphaminer into a (JSON) Value
+-- | Pack all values from the alphaminer into a (JSON) Value
 alphaminerResp :: CytoGraph -> [(Int, Trace)] -> AlphaMinerSets -> FootprintMatrix -> Value
 alphaminerResp g tc ams fpmatrix = Object $ HMS.fromList [
             ("graph", toJSON g),
