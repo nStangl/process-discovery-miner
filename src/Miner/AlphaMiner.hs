@@ -3,8 +3,6 @@ module Miner.AlphaMiner where
 
 import Types
 
-import qualified Data.Set as Set
-
 import Data.Tuple (swap)
 import Data.List ( (\\), nub, partition, sort, find, sortBy, groupBy )
 import Data.Bifunctor ( Bifunctor(bimap) )
@@ -40,10 +38,6 @@ tI = nub . map head
 
 tO :: EventLog -> Trace
 tO = nub . map last
-
-xLSet :: EventLog -> Set.Set (Set.Set Activity, Set.Set Activity)
-xLSet l = Set.fromList $ map (Data.Bifunctor.bimap Set.fromList Set.fromList) xs
-    where xs = xL l
 
 -- | Much bruteforce, very wow
 xL :: EventLog -> [Transition]
