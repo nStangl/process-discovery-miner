@@ -11,8 +11,7 @@ import Toolbar from "@mui/material/Toolbar";
 import AccountTreeIcon from "@mui/icons-material/AccountTree";
 import { InfoDialog, AboutDialog } from "./Dialog";
 import { CssBaseline } from "@mui/material";
-import MinerClass from "./MinerClass";
-
+import MinerClass from "./MainUpload";
 
 export default function App() {
   return (
@@ -33,7 +32,7 @@ function Copyright() {
     <Typography variant="body2" color="text.secondary" align="center">
       {"Copyright © "}
       <Link color="inherit" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
-        Very Cool Website
+        Bachelor internship implementation
       </Link>{" "}
       {new Date().getFullYear()}.
     </Typography>

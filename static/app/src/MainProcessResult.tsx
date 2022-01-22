@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import CytoscapeComponent from "react-cytoscapejs";
 import dagre from "cytoscape-dagre";
 import cytoscape, { ExportOptions } from "cytoscape";
-import { ElementDefinition } from "cytoscape";
 import SpinStretch from "react-cssfx-loading/lib/SpinStretch";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
@@ -21,7 +20,6 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { saveAs } from "file-saver";
-
 
 type GraphProps = {
   postBody: string;
@@ -44,6 +42,7 @@ type AlphaMinerReponse = {
   footprintmatrix: FootprintMatrix;
 };
 
+// Not implemented yet
 type RegionMinerResponse = {};
 
 type FootprintMatrix = {
@@ -130,8 +129,8 @@ export default class GraphClass extends React.Component<
   render() {
     const { response, responseError } = this.state;
 
+    // Loading animation...
     if (response === null) {
-      // Loading animation...
       return (
         <div
           style={{ width: "100%", display: "flex", justifyContent: "center" }}
@@ -149,30 +148,19 @@ export default class GraphClass extends React.Component<
       );
     }
 
+    // Display result
     if (response !== null && responseError === "") {
-      console.log("Reponse obj");
-      console.log(this.state.response);
-
       return (
-        <Box sx={{ flexGrow: 1 }}>
-          
-          <Box>
-            <Box sx={{ display: "flex", justifyContent: "flex-end" }}>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                Petri Net
-              </Typography>
-            </Box>
-            
-            <Box sx={{ display: "flex", justifyContent: "center" }}>
-              {this.displayCytoGraph(this.state.response?.graph!)}
-            </Box>
-            <Box sx={{ display: "flex", justifyContent: "center" }}>
-              <ButtonGroup variant="outlined" aria-label="outlined button group">
-                <Button onClick={this.handleResetCy}>Reset View</Button>
-                <Button onClick={this.handleSavePNG}>Save as PNG</Button>
-                <Button onClick={this.handleSaveJSON}>Save as JSON</Button>
-              </ButtonGroup>
-            </Box>
+        <Box sx={{ flexGrow: 1, marginTop: "10px" }}>
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            {this.displayCytoGraph(this.state.response?.graph!)}
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "center" }}>
+            <ButtonGroup variant="outlined" aria-label="outlined button group">
+              <Button onClick={this.handleResetCy}>Reset View</Button>
+              <Button onClick={this.handleSavePNG}>Save as PNG</Button>
+              <Button onClick={this.handleSaveJSON}>Save as JSON</Button>
+            </ButtonGroup>
           </Box>
 
           <Grid
@@ -206,7 +194,9 @@ export default class GraphClass extends React.Component<
           </Grid>
         </Box>
       );
-    } else {
+    }
+    // Error message
+    else {
       return (
         <div style={{ display: "flex", justifyContent: "center" }}>
           <Alert severity="error">
@@ -230,8 +220,10 @@ export default class GraphClass extends React.Component<
   handleSaveJSON = () => {
     if (this.state.cyRef !== null) {
       var json = this.state.cyRef.json();
-      var jsonBlob = new Blob([JSON.stringify(json)], {type: "application/json"});
-      
+      var jsonBlob = new Blob([JSON.stringify(json)], {
+        type: "application/json",
+      });
+
       saveAs(URL.createObjectURL(jsonBlob), "graph_data.json");
     } else {
       console.log("Cannot save JSON");
@@ -241,14 +233,13 @@ export default class GraphClass extends React.Component<
   handleSavePNG = () => {
     if (this.state.cyRef !== null) {
       const options: cytoscape.ExportBlobOptions = {
-        output: 'blob',
-        full: true
-      }
+        output: "blob",
+        full: true,
+      };
       var fileBlob = this.state.cyRef.png(options);
       var blobURL = URL.createObjectURL(fileBlob);
 
       saveAs(blobURL, "cytograph.png");
-
     } else {
       console.log("Cannot save PNG");
     }
@@ -291,6 +282,7 @@ export default class GraphClass extends React.Component<
     );
   }
 
+  // Extract data and create Pie Chart to display trace count
   displayTraceCountPieChart(tc: Array<TraceCountLine> | undefined) {
     if (tc === undefined) {
       console.log("traceCount is undefined");
@@ -308,17 +300,22 @@ export default class GraphClass extends React.Component<
     return PieChart(traces, counts);
   }
 
+  // Default cytoscape layout if no other is specified
   static defaultLayout: any = {
     name: "dagre",
     rankDir: "LR",
     spacingFactor: 0.8,
+    // Does include long labels in dimension
+    // remove if not desired
     nodeDimensionsIncludeLabels: true,
   };
 
+  // Display and return the Cytoscape canvas to show the graph
   displayCytoGraph(
     graph: cytoscape.ElementDefinition[],
     layout: cytoscape.LayoutOptions | undefined = GraphClass.defaultLayout
   ) {
+    // Tell cytoscape to use the layout. Don't forget!
     cytoscape.use(dagre);
 
     return (

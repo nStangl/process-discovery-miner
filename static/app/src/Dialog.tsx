@@ -4,12 +4,11 @@ import { styled } from "@mui/material/styles";
 import Dialog from "@mui/material/Dialog";
 import DialogTitle from "@mui/material/DialogTitle";
 import DialogContent from "@mui/material/DialogContent";
-import DialogActions from "@mui/material/DialogActions";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import Typography from "@mui/material/Typography";
 import Link from "@mui/material/Link";
-import Divider from '@mui/material/Divider';
+import Divider from "@mui/material/Divider";
 
 export { InfoDialog, AboutDialog };
 export interface DialogTitleProps {
@@ -91,13 +90,15 @@ function InfoDialog() {
             >
               here
             </Link>{" "}
-            for an example on the expected log structure.
+            for examples on how the log is supposed to be structured.
             <br />
-            The alpha miner then processes the log and returns a petri net.
           </Typography>
           <Divider />
           <Typography gutterBottom>
             The alpha miner then processes the log and returns a petri net.
+            <br />
+            The graph is interactive and can be saved as a JSON or PNG. Note
+            that it also saves the layout.
           </Typography>
         </DialogContent>
       </BootstrapDialog>
@@ -137,21 +138,22 @@ function AboutDialog() {
         </BootstrapDialogTitle>
         <DialogContent dividers>
           <Typography gutterBottom>
-            This is an implementation of a alpha miner as a easy to use web service. The implementation is based on [1].
+            This is an implementation of a easy to use alpha miner. The
+            implementation is based on [1].
             <br />
-
           </Typography>
           <Divider />
           <Typography gutterBottom>
-            [1]: Van Der Aalst, Wil. Process Mining, Data Science in Action [2016]
+            [1]: Van Der Aalst, Wil. Process Mining, Data Science in Action
+            [2016]
             <br />
-            Favicon source: <Link
+            Favicon source:{" "}
+            <Link
               href="https://www.flaticon.com/free-icon/pickaxe_663361"
               target="_blank"
             >
               here
-            </Link>{" "} 
-          
+            </Link>{" "}
           </Typography>
         </DialogContent>
       </BootstrapDialog>

@@ -1,3 +1,8 @@
+/*
+The idea and implementation is based on
+https://codenebula.io/javascript/frontend/dataviz/2019/04/18/automatically-generate-chart-colors-with-chart-js-d3s-color-scales/
+*/
+
 import React from "react";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Pie } from "react-chartjs-2";
@@ -22,6 +27,7 @@ export function PieChart(labels: string[], data: number[]) {
     useEndAsStart: true,
   };
 
+  // generate colors
   var COLORS = interpolateColors(n, colorScale, colorRangeInfo);
 
   const chartData = {

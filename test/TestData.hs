@@ -5,6 +5,8 @@ import Types
 -- Test data for HUnit tests
 -- Data extracted and seperated from either [1] or [2]
 -- For every log xL and yL are defined, other partial results optional.
+-- [1]: https://lehre.bpm.in.tum.de/~pm-prak/
+-- [2]: Process Mining, Wil van der Aalst, Data Science in Action (2nd. Edit)
 
 {------ Log 1 -----}
 getLog1 :: EventLog

@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import Box from "@mui/material/Box";
-import {
-  DropzoneAreaBase,
-  FileObject,
-} from "material-ui-dropzone";
+import { DropzoneAreaBase, FileObject } from "material-ui-dropzone";
 
-import GraphClass from "./GraphClass";
+import GraphClass from "./MainProcessResult";
 
 type MyProps = {};
 type MyState = {
@@ -46,6 +43,8 @@ export default class MinerClass extends React.Component<MyProps, MyState> {
         <div
           style={{ width: "100%", display: "flex", justifyContent: "center" }}
         >
+          <div></div>
+
           <Box
             sx={{
               display: "flex",
