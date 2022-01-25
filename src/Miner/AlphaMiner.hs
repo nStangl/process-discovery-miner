@@ -72,7 +72,8 @@ alphaMiner elog = start ++ transitions ++ end
 expToCytoGraph :: EventLog -> [Transition] -> CytoGraph
 expToCytoGraph elog ts = CytoGraph nodes' edges'
     where
-        nodes1 = CytoNode "start" "ellipse" : CytoNode "end" "ellipse" : map (`CytoNode` "rectangle") (tL elog)
+        nodes1 = CytoNode "start" "ellipse" : CytoNode "end" "ellipse" 
+                : map (`CytoNode` "rectangle") (tL elog)
         (startend, ts') = partition containsStartEnd ts
         edges1 = map transformStartEndEdges startend
         edges2Fs = fmap transformEdges ts'
@@ -150,9 +151,11 @@ transformStartEndEdges _ = []
 transformEdges :: Transition -> Int -> ([CytoEdge], CytoNode)
 transformEdges (ls, rs) i =
     let place = "p" ++ show i
+        edge f t = CytoEdge "__" f t "triangle"
     in
-        (nub (concat [ [CytoEdge "__" l place "triangle" , CytoEdge "__" place r "triangle"] | l <- ls, r <- rs])
+        (nub (concat [ [edge l place , edge place r] | l <- ls, r <- rs])
         , CytoNode place "ellipse")
+
 
 
 {-------------------------------- General auxiliary functions ------------------------------------------}

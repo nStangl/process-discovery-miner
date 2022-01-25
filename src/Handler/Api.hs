@@ -13,6 +13,8 @@ import Network.Wai
 import qualified Data.HashMap.Strict as HMS
 import Types
 import Miner.AlphaMiner
+    ( alphaMiner, alphaminersets, createFpMatrix, expToCytoGraph )
+import qualified Miner.AlphaPlusMiner as AP
 import Miner.RegionMiner ()
 import IOHelper.XESReader ( readXES, countTraces )
 import Data.List ( nub )
@@ -42,6 +44,26 @@ alphaminerResp g tc ams fpmatrix = Object $ HMS.fromList [
             ("alphaminersets", toJSON ams),
             ("footprintmatrix", toJSON fpmatrix)
             ]   
+
+postAlphaplusminerV1R :: Handler Value
+postAlphaplusminerV1R = do
+    -- read request body
+    req <- waiRequest
+    body <- liftIO $ strictRequestBody req
+    let logOrErr = readXES body
+    case logOrErr of
+        Left err -> invalidArgs [pack "no"]
+        Right elog -> do
+            let elog' = nub elog
+            let (ts,l1ls) = AP.alphaPlusMiner elog'
+            let cytoGraph = AP.exportToCytoGraph' elog' ts l1ls
+            let traceCount = countTraces elog
+            let ams = alphaminersets elog'
+            let fpm = createFpMatrix elog'
+
+            return $ alphaminerResp cytoGraph traceCount ams fpm
+
+
 
 -- return dummy value until implemented
 postRegionminerV1R :: Handler Value
