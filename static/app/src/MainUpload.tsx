@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Box from "@mui/material/Box";
 import { DropzoneAreaBase, FileObject } from "material-ui-dropzone";
+import { ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 
 import MainProcessResult from "./MainProcessResult";
 
@@ -8,9 +9,13 @@ type MainUploadProps = {};
 type MainUploadState = {
   files: FileObject[];
   dataString: string;
+  miner: string;
 };
 
-export default class MainUpload extends React.Component<MainUploadProps, MainUploadState> {
+export default class MainUpload extends React.Component<
+  MainUploadProps,
+  MainUploadState
+> {
   constructor(props: any) {
     super(props);
 
@@ -20,6 +25,7 @@ export default class MainUpload extends React.Component<MainUploadProps, MainUpl
     this.state = {
       files: [],
       dataString: "",
+      miner: "alphaminer",
     };
   }
 
@@ -37,36 +43,52 @@ export default class MainUpload extends React.Component<MainUploadProps, MainUpl
     this.setState({ files: this.state.files.filter((f) => f !== deleted) });
   };
 
+  handleMinerSelect = (
+    event: React.MouseEvent<HTMLElement>,
+    newMiner: string
+  ) => {
+    if (this.state.miner != newMiner) this.setState({ miner: newMiner });
+  };
+
   render() {
     if (this.state.files === undefined || this.state.files.length < 1) {
       return (
-        <div
-          style={{ width: "100%", display: "flex", justifyContent: "center" }}
-        >
-          <div></div>
-
-          <Box
-            sx={{
-              display: "flex",
-              justifyContent: "center",
-              p: 1,
-              m: 1,
-              width: "60%",
-            }}
-          >
-            <DropzoneAreaBase
-              fileObjects={this.state.files}
-              //Icon={fileAttachIcon}
-              dropzoneText={"Upload .xes or .xml file here"}
-              onAdd={this.handleAdd}
-              onDelete={this.handleDelete}
-              onAlert={(message, variant) =>
-                console.log(`${variant}: ${message}`)
-              }
-              acceptedFiles={[".xml", ".xes"]}
-              filesLimit={1}
-              maxFileSize={104857600} // max 100 MB
-            />
+        <div>
+          <Box sx={{display: "flex", justifyContent: "center", marginTop: "20px"}}>
+            <ToggleButtonGroup
+              color="primary"
+              value={this.state.miner}
+              exclusive
+              onChange={this.handleMinerSelect}
+            >
+              <ToggleButton value="alphaminer">Alpha Miner</ToggleButton>
+              <ToggleButton value="alphaplusminer">Alpha+ Miner</ToggleButton>
+              <ToggleButton value="regionminer" disabled>Region Miner</ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+          <Box sx={{display: "flex", justifyContent: "center", width: "100%"}}>
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "center",
+                m: 1,
+                width: "60%",
+              }}
+            >
+              <DropzoneAreaBase
+                fileObjects={this.state.files}
+                //Icon={fileAttachIcon}
+                dropzoneText={"Upload .xes or .xml file here"}
+                onAdd={this.handleAdd}
+                onDelete={this.handleDelete}
+                onAlert={(message, variant) =>
+                  console.log(`${variant}: ${message}`)
+                }
+                acceptedFiles={[".xml", ".xes"]}
+                filesLimit={1}
+                maxFileSize={104857600} // max 100 MB
+              />
+            </Box>
           </Box>
         </div>
       );
@@ -95,7 +117,9 @@ export default class MainUpload extends React.Component<MainUploadProps, MainUpl
         // TODO Handle error by giving proper message!
       }
 
-      return <MainProcessResult postBody={dataString} miner={"alphaminer"} />;
+      return (
+        <MainProcessResult postBody={dataString} miner={this.state.miner} />
+      );
     }
   }
 

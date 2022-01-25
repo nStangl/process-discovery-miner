@@ -106,7 +106,7 @@ ProcessResultState
 
   // Perform type casting and parse graph
   handleFetch(responseJSON: any): void {
-    if (this.props.miner == "alphaminer") {
+    if (this.props.miner == "alphaminer" || this.props.miner === "alphaplusminer") {
       let fpm: FootprintMatrix = responseJSON.footprintmatrix;
       let graph = responseJSON.graph;
       let tracecount: Array<TraceCountLine> = responseJSON.traceCount;
@@ -151,7 +151,7 @@ ProcessResultState
     // Display result
     if (response !== null && responseError === "") {
       return (
-        <Box sx={{ flexGrow: 1, marginTop: "10px" }}>
+        <Box sx={{ flexGrow: 1, marginTop: "20px" }}>
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             {this.displayCytoGraph(this.state.response?.graph!)}
           </Box>
