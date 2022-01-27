@@ -20,6 +20,7 @@ import ButtonGroup from "@mui/material/ButtonGroup";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { saveAs } from "file-saver";
+import AlphaMinerSetsAccordion from "./AlphaMinerSetAccordion";
 
 type ProcessResultProps = {
   postBody: string;
@@ -53,13 +54,9 @@ type FootprintMatrix = {
 
 type TraceCountLine = [count: number, trace: Array<string>];
 
-// TODO: Check if not change to tuple as TCL ^
-type Transition = {
-  from: Array<string>;
-  to: Array<string>;
-};
+export type Transition = [from: Array<string>, to: Array<string>];
 
-type AlphaminerSets = {
+export type AlphaminerSets = {
   tl: Array<string>;
   ti: Array<string>;
   to: Array<string>;
@@ -67,9 +64,10 @@ type AlphaminerSets = {
   yl: Array<Transition>;
 };
 
-export default class MainProcessResult extends React.Component<
-ProcessResultProps,
-ProcessResultState
+
+export class MainProcessResult extends React.Component<
+  ProcessResultProps,
+  ProcessResultState
 > {
   constructor(props: any) {
     super(props);
@@ -106,7 +104,10 @@ ProcessResultState
 
   // Perform type casting and parse graph
   handleFetch(responseJSON: any): void {
-    if (this.props.miner == "alphaminer" || this.props.miner === "alphaplusminer") {
+    if (
+      this.props.miner == "alphaminer" ||
+      this.props.miner === "alphaplusminer"
+    ) {
       let fpm: FootprintMatrix = responseJSON.footprintmatrix;
       let graph = responseJSON.graph;
       let tracecount: Array<TraceCountLine> = responseJSON.traceCount;
@@ -190,6 +191,13 @@ ProcessResultState
                 Trace Occurences
               </Typography>
               {this.displayTraceCountPieChart(this.state.response?.traceCount!)}
+            </Grid>
+
+            <Grid item xs="auto">
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1}}>
+                Alpha miner sets
+              </Typography>
+              {this.displayAlphaMinerSets(MainProcessResult.testAMS)}
             </Grid>
           </Grid>
         </Box>
@@ -313,7 +321,9 @@ ProcessResultState
   // Display and return the Cytoscape canvas to show the graph
   displayCytoGraph(
     graph: cytoscape.ElementDefinition[],
-    layout: cytoscape.LayoutOptions | undefined = MainProcessResult.defaultLayout
+    layout:
+      | cytoscape.LayoutOptions
+      | undefined = MainProcessResult.defaultLayout
   ) {
     // Tell cytoscape to use the layout. Don't forget!
     cytoscape.use(dagre);
@@ -370,4 +380,24 @@ ProcessResultState
       />
     );
   }
+
+  static testAMS : AlphaminerSets = {
+    tl: ["a","e","d","c","b"],
+    ti: ["a"],
+    to: ["d"],
+    xl: [[["a"],["e","c"]],[["a"],["e","b"]],[["a"],["e"]],[["a"],["c"]],[["a"],["b"]],[["e","c"],["d"]],[["e","b"],["d"]],[["e"],["d"]],[["c"],["d"]],[["b"],["d"]]],
+    yl: [[["a"],["e","c"]],[["a"],["e","b"]],[["e","c"],["d"]],[["e","b"],["d"]]]
+  }
+
+  displayAlphaMinerSets(ams: AlphaminerSets) {
+    console.log("ams");
+    console.log(ams);
+
+    return (
+      AlphaMinerSetsAccordion(ams)
+    );
+
+
+  }
+
 }

@@ -3,7 +3,7 @@ import Box from "@mui/material/Box";
 import { DropzoneAreaBase, FileObject } from "material-ui-dropzone";
 import { ToggleButton, ToggleButtonGroup, Typography } from "@mui/material";
 
-import MainProcessResult from "./MainProcessResult";
+import { MainProcessResult } from "./MainProcessResult";
 
 type MainUploadProps = {};
 type MainUploadState = {
