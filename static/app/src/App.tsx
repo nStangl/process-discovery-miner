@@ -53,7 +53,7 @@ function CustomAppBar() {
         <Toolbar>
           <AccountTreeIcon sx={{ mr: 2 }} />
           <Typography variant="h5" component="div" sx={{ flexGrow: 1 }}>
-            Alpha Miner
+            Alpha+ Miner
           </Typography>
 
           <InfoDialog />
