@@ -47,8 +47,13 @@ export default class MainUpload extends React.Component<
     event: React.MouseEvent<HTMLElement>,
     newMiner: string
   ) => {
-    if (this.state.miner != newMiner) this.setState({ miner: newMiner });
+    if (newMiner !== null) this.setState({ miner: newMiner });
   };
+
+  getOtherMiner(miner: string): string {
+    if (miner === "alphaplusminer") return "alphaminer";
+    else return "alphaplusminer";
+  }
 
   render() {
     if (this.state.files === undefined || this.state.files.length < 1) {

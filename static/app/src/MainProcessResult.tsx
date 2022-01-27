@@ -34,13 +34,18 @@ type ProcessResultState = {
 };
 
 // type definitons to conveniently store the api reponses
-type APIResponse = AlphaMinerReponse | null;
+type APIResponse = AlphaMinerResponse | AlphaPlusMinerResponse | null;
 
-type AlphaMinerReponse = {
+type AlphaMinerResponse = {
   graph: cytoscape.ElementDefinition[];
   traceCount: Array<TraceCountLine>;
   alphaminersets: AlphaminerSets;
   footprintmatrix: FootprintMatrix;
+};
+
+// extend AlphaMinerReponse by additional field
+type AlphaPlusMinerResponse = AlphaMinerResponse & {
+  loopsWithNeighbours: Array<LoopWithNeighbour>;
 };
 
 // Not implemented yet
@@ -54,6 +59,8 @@ type FootprintMatrix = {
 
 type TraceCountLine = [count: number, trace: Array<string>];
 
+export type LoopWithNeighbour = [left: string, loop: string, right: string];
+
 export type Transition = [from: Array<string>, to: Array<string>];
 
 export type AlphaminerSets = {
@@ -63,7 +70,6 @@ export type AlphaminerSets = {
   xl: Array<Transition>;
   yl: Array<Transition>;
 };
-
 
 export class MainProcessResult extends React.Component<
   ProcessResultProps,
@@ -85,6 +91,8 @@ export class MainProcessResult extends React.Component<
       headers: { "Content-Type": "application/xml" },
       body: this.props.postBody,
     };
+    console.log("Making post to:");
+    console.log(this.props.miner);
     const apiURL: string = window.location.href + "api/v1/" + this.props.miner;
 
     fetch(apiURL, requestOptions)
@@ -105,7 +113,7 @@ export class MainProcessResult extends React.Component<
   // Perform type casting and parse graph
   handleFetch(responseJSON: any): void {
     if (
-      this.props.miner == "alphaminer" ||
+      this.props.miner === "alphaminer" ||
       this.props.miner === "alphaplusminer"
     ) {
       let fpm: FootprintMatrix = responseJSON.footprintmatrix;
@@ -113,16 +121,34 @@ export class MainProcessResult extends React.Component<
       let tracecount: Array<TraceCountLine> = responseJSON.traceCount;
       let ams: AlphaminerSets = responseJSON.alphaminersets;
 
-      this.setState({
-        responseError: "",
-        response: {
-          graph: CytoscapeComponent.normalizeElements(graph),
-          traceCount: tracecount,
-          alphaminersets: ams,
-          footprintmatrix: fpm,
-        },
-        cyRef: null,
-      });
+      if (this.props.miner === "alphaplusminer") {
+        let loopsWNeighbours: Array<LoopWithNeighbour> = responseJSON.loopsWithNeighbours;
+
+        this.setState({
+          responseError: "",
+          response: {
+            graph: CytoscapeComponent.normalizeElements(graph),
+            traceCount: tracecount,
+            alphaminersets: ams,
+            footprintmatrix: fpm,
+            loopsWithNeighbours:  loopsWNeighbours,
+          },
+          cyRef: null,
+        });
+        console.log(this.state.response);
+      } else {
+        this.setState({
+          responseError: "",
+          response: {
+            graph: CytoscapeComponent.normalizeElements(graph),
+            traceCount: tracecount,
+            alphaminersets: ams,
+            footprintmatrix: fpm,
+          },  
+          cyRef: null,
+        });
+        console.log(this.state.response);
+      }
     } else if (this.props.miner == "regionminer") {
     }
   }
@@ -193,11 +219,11 @@ export class MainProcessResult extends React.Component<
               {this.displayTraceCountPieChart(this.state.response?.traceCount!)}
             </Grid>
 
-            <Grid item xs="auto">
+            <Grid item xs={10}>
               <Typography variant="h6" component="div" sx={{ flexGrow: 1}}>
                 Alpha miner sets
               </Typography>
-              {this.displayAlphaMinerSets(MainProcessResult.testAMS)}
+              {this.displayAlphaMinerSets()}
             </Grid>
           </Grid>
         </Box>
@@ -381,23 +407,17 @@ export class MainProcessResult extends React.Component<
     );
   }
 
-  static testAMS : AlphaminerSets = {
-    tl: ["a","e","d","c","b"],
-    ti: ["a"],
-    to: ["d"],
-    xl: [[["a"],["e","c"]],[["a"],["e","b"]],[["a"],["e"]],[["a"],["c"]],[["a"],["b"]],[["e","c"],["d"]],[["e","b"],["d"]],[["e"],["d"]],[["c"],["d"]],[["b"],["d"]]],
-    yl: [[["a"],["e","c"]],[["a"],["e","b"]],[["e","c"],["d"]],[["e","b"],["d"]]]
+  displayAlphaMinerSets() {
+    const x = this.state.response;
+
+    if (this.isAlphaPlusMinerResponse(x)) {
+      return (AlphaMinerSetsAccordion(x.alphaminersets, x.loopsWithNeighbours));
+    } else if (x !== null) {
+      return (AlphaMinerSetsAccordion(x.alphaminersets));
+    }
   }
 
-  displayAlphaMinerSets(ams: AlphaminerSets) {
-    console.log("ams");
-    console.log(ams);
-
-    return (
-      AlphaMinerSetsAccordion(ams)
-    );
-
-
+  isAlphaPlusMinerResponse(x: APIResponse): x is AlphaPlusMinerResponse {
+    return (x as AlphaPlusMinerResponse).loopsWithNeighbours !== undefined;
   }
-
 }
