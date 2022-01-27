@@ -25,7 +25,7 @@ export default class MainUpload extends React.Component<
     this.state = {
       files: [],
       dataString: "",
-      miner: "alphaminer",
+      miner: "alphaplusminer",
     };
   }
 
@@ -54,7 +54,13 @@ export default class MainUpload extends React.Component<
     if (this.state.files === undefined || this.state.files.length < 1) {
       return (
         <div>
-          <Box sx={{display: "flex", justifyContent: "center", marginTop: "20px"}}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "center",
+              marginTop: "20px",
+            }}
+          >
             <ToggleButtonGroup
               color="primary"
               value={this.state.miner}
@@ -63,10 +69,11 @@ export default class MainUpload extends React.Component<
             >
               <ToggleButton value="alphaminer">Alpha Miner</ToggleButton>
               <ToggleButton value="alphaplusminer">Alpha+ Miner</ToggleButton>
-              <ToggleButton value="regionminer" disabled>Region Miner</ToggleButton>
             </ToggleButtonGroup>
           </Box>
-          <Box sx={{display: "flex", justifyContent: "center", width: "100%"}}>
+          <Box
+            sx={{ display: "flex", justifyContent: "center", width: "100%" }}
+          >
             <Box
               sx={{
                 display: "flex",
@@ -123,7 +130,6 @@ export default class MainUpload extends React.Component<
     }
   }
 
-  //  curl -X POST http://localhost:3000/api/v1/alphaminer -H "Content-Type: application/xml" -H "Accept: application/xml" --data @L1.xes > result.txt
   /*
     Encodes a Base64 string to UTF-8 string. Unicode characters are escaped and should work.
     Taken from: https://developer.mozilla.org/en-US/docs/Glossary/Base64#solution_1_%E2%80%93_escaping_the_string_before_encoding_it
@@ -133,6 +139,3 @@ export default class MainUpload extends React.Component<
     return decodeURIComponent(escape(window.atob(str)));
   }
 }
-/*
-
-*/
