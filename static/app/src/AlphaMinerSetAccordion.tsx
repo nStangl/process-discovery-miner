@@ -15,13 +15,11 @@ export default function AlphaMinerSetsAccordion(
   ams: AlphaminerSets,
   loopsWNeigh?: Array<LoopWithNeighbour>
 ) {
-  var isLoops;
-  if (isLoops === null)
-    isLoops = false;
-  else if (isLoops)
-    isLoops = true;
-  else
-    isLoops = false;
+
+  const isLoops: boolean = (loopsWNeigh === null || loopsWNeigh === undefined) ? false : true;
+    
+  console.log(loopsWNeigh);
+  console.log(isLoops);
 
   const { tl, ti, to, xl, yl } = ams;
 
