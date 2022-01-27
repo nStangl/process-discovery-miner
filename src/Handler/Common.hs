@@ -15,7 +15,7 @@ import Import
 getFaviconR :: Handler TypedContent
 getFaviconR = do cacheSeconds $ 60 * 60 * 12 -- cache for 12 hours
                  return $ TypedContent "image/x-icon"
-                        $ toContent $(embedFile "config/favicon.ico")
+                        $ toContent $(embedFile "config/favicon_pickaxe.ico")
 
 getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain
