@@ -9,31 +9,25 @@
 module Handler.Api where
 
 import Import
-import Network.Wai
+import Network.Wai ( strictRequestBody )
 import qualified Data.HashMap.Strict as HMS
 import Types
 import Miner.AlphaMiner
     ( alphaMiner, alphaminersets, createFpMatrix, expToCytoGraph )
 import qualified Miner.AlphaPlusMiner as AP
-import Miner.RegionMiner ()
 import IOHelper.XESReader ( readXES, countTraces )
 import Data.List ( nub )
 
 postAlphaminerV1R :: Handler Value
 postAlphaminerV1R =  do
-    -- read the request body
-    req <-  waiRequest
-    body <- liftIO $ strictRequestBody req
-    let logOrErr = readXES body
-    -- check for error and return error message if needed
+    logOrErr <- parseRequestBodyAndReadXES
     case logOrErr of
         Left err -> invalidArgs [pack err]
         Right elog -> do
             let elog' = nub elog
+            let (traceCount, ams, fpm) = basicAlphaMinerVals elog elog'
+            
             let cytoGraph = expToCytoGraph elog' (alphaMiner elog')
-            let traceCount = countTraces elog
-            let ams = alphaminersets elog'
-            let fpm = createFpMatrix elog'
             return $ alphaminerResp cytoGraph traceCount ams fpm
 
 -- | Pack all values from the alphaminer into a (JSON) Value
@@ -47,23 +41,39 @@ alphaminerResp g tc ams fpmatrix = Object $ HMS.fromList [
 
 postAlphaplusminerV1R :: Handler Value
 postAlphaplusminerV1R = do
-    -- read request body
+    logOrErr <- parseRequestBodyAndReadXES
+    case logOrErr of
+        Left err -> invalidArgs [pack err]
+        Right elog -> do
+            let elog' = nub elog
+            let (traceCount, ams, fpm) = basicAlphaMinerVals elog elog'
+
+            let (ts,l1ls) = AP.alphaPlusMiner elog'
+            let cytoGraph = AP.exportToCytoGraph' elog' ts l1ls
+
+            return $ alphaplusminerResp cytoGraph l1ls traceCount ams fpm
+
+basicAlphaMinerVals :: EventLog -> EventLog -> ([(Int, Trace)], AlphaMinerSets, FootprintMatrix)
+basicAlphaMinerVals elog elog' = (countTraces elog, alphaminersets elog', createFpMatrix elog')
+
+-- | Pack all values from the alphplusaminer into a (JSON) Value
+alphaplusminerResp :: CytoGraph -> [(Activity,Activity,Activity)] -> [(Int, Trace)] -> AlphaMinerSets -> FootprintMatrix -> Value
+alphaplusminerResp g l1ls tc ams fpmatrix = Object $ HMS.fromList [
+            ("graph", toJSON g),
+            ("loopsWithNeighbours", toJSON l1ls),
+            ("traceCount", toJSON tc),
+            ("alphaminersets", toJSON ams),
+            ("footprintmatrix", toJSON fpmatrix)
+            ]   
+
+-- | Parses the body of a POST request and tries to read it's XES content.
+-- Returns EventLog if success
+parseRequestBodyAndReadXES :: HandlerFor App (Either String EventLog)
+parseRequestBodyAndReadXES = do
     req <- waiRequest
     body <- liftIO $ strictRequestBody req
     let logOrErr = readXES body
-    case logOrErr of
-        Left err -> invalidArgs [pack "no"]
-        Right elog -> do
-            let elog' = nub elog
-            let (ts,l1ls) = AP.alphaPlusMiner elog'
-            let cytoGraph = AP.exportToCytoGraph' elog' ts l1ls
-            let traceCount = countTraces elog
-            let ams = alphaminersets elog'
-            let fpm = createFpMatrix elog'
-
-            return $ alphaminerResp cytoGraph traceCount ams fpm
-
-
+    return logOrErr
 
 -- return dummy value until implemented
 postRegionminerV1R :: Handler Value
