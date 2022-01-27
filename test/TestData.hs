@@ -101,6 +101,17 @@ getLog7 =
     ["a", "b", "b", "b", "b", "c"]
   ]
 
+getLog7Preprocessed :: EventLog
+getLog7Preprocessed =
+  [ ["a", "c"],
+    ["a", "c"],
+    ["a", "c"],
+    ["a", "c"]
+  ]
+
+getLog7L1LWithNeighbours :: [(Activity, Activity, Activity)]
+getLog7L1LWithNeighbours = [("a", "b", "c")]
+
 getLog7xL :: [Transition]
 getLog7xL = [(["a"], ["b"]), (["a"], ["c"]), (["b"], ["c"])]
 
@@ -196,3 +207,17 @@ getRunExyL =
     (["register request", "reinitiate request"], ["check ticket"]),
     (["register request", "reinitiate request"], ["examine casually", "examine thoroughly"])
   ]
+
+{----- Log 8 ------}
+getLog8 :: EventLog
+getLog8 = [["a", "b", "d"], ["a", "b", "c", "b", "d"], ["a", "b", "c", "b", "c", "b", "d"]]
+
+getLog8Preprocessed :: EventLog
+getLog8Preprocessed = getLog8
+
+getLog8L1LWithNeighbours :: [(Activity, Activity, Activity)]
+getLog8L1LWithNeighbours = []
+
+{----- Log 9 ------}
+getLog9 :: EventLog
+getLog9 = [["a", "c", "d"], ["b", "c", "e"]]

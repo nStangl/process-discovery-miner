@@ -9,6 +9,7 @@ import TestData
 import qualified Data.Set as Set
 import IOHelper.XESReader
 import Data.Bifunctor ( Bifunctor(bimap) )
+import qualified Miner.AlphaPlusMiner as AP
 
 -- Type alias for convinient check by Eq (equality)
 -- Sets are considered equal independent of the order of their elements
@@ -122,8 +123,20 @@ spec = do
         it "flyerinst" $ do
             testyL getFlyer getFlyeryL
         it "running-example" $ do
-            testyL getRunEx getRunExyL  
-            
+            testyL getRunEx getRunExyL 
+    
+    describe "Testing Alpha+ Miner" $ do
+        describe "New order relations" $ do
+            it "x" $ do
+                True `shouldBe` True
+        describe "Detect loops in invalid places" $ do
+            it "detect loop at start" $ do
+                AP.containsL1LAtStart [["a","b"],["a","a","b"]] `shouldBe` True
+            it "detect loop at end" $ do
+                AP.containsL1LAtEnd [["a","b","c"],["a","b","c","c"]] `shouldBe` True
+        describe "Solve EventLogs" $ do
+            it "Solve loops length 2" $ do
+                snd (AP.alphaPlusMiner getLog8) `shouldBe` getLog8L1LWithNeighbours
 
 toFilePath :: String -> FilePath
 toFilePath s = "./test/logs/" ++ s ++ ".xes"
