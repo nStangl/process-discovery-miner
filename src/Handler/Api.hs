@@ -18,11 +18,14 @@ import qualified Miner.AlphaPlusMiner as AP
 import IOHelper.XESReader ( readXES, countTraces )
 import Data.List ( nub )
 
+-- | Handler for POST to /api/v1/alphaminer
 postAlphaminerV1R :: Handler Value
 postAlphaminerV1R =  do
     logOrErr <- parseRequestBodyAndReadXES
     case logOrErr of
-        Left err -> invalidArgs [pack err]
+        -- return error
+        Left err -> sendResponseStatus status400 err
+        --invalidArgs [pack err]
         Right elog -> do
             let elog' = nub elog
             let (traceCount, ams, fpm) = basicAlphaMinerVals elog elog'
@@ -39,11 +42,13 @@ alphaminerResp g tc ams fpmatrix = Object $ HMS.fromList [
             ("footprintmatrix", toJSON fpmatrix)
             ]   
 
+-- | Handler for POST to /api/v1/alphaplusminer
 postAlphaplusminerV1R :: Handler Value
 postAlphaplusminerV1R = do
     logOrErr <- parseRequestBodyAndReadXES
     case logOrErr of
-        Left err -> invalidArgs [pack err]
+        Left err -> sendResponseStatus status400 err
+            --invalidArgs [pack err]
         Right elog -> do
             let elog' = nub elog
             let (traceCount, ams, fpm) = basicAlphaMinerVals elog elog'
@@ -75,7 +80,11 @@ parseRequestBodyAndReadXES = do
     let logOrErr = readXES body
     return logOrErr
 
+-- | Handler for POST to /api/v1/regionminer
 -- return dummy value until implemented
+-- Left in because: 
+-- 1) Might implement it in future
+-- 2) Leaving in does not cause problems; cannot be selected from frontend
 postRegionminerV1R :: Handler Value
 postRegionminerV1R = do
     returnJson graphNotImplemented

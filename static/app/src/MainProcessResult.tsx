@@ -57,6 +57,7 @@ type FootprintMatrix = {
   fields: Array<Array<string>>;
 };
 
+// This is a tuple which is defined as a array with 2 elements
 type TraceCountLine = [count: number, trace: Array<string>];
 
 export type LoopWithNeighbour = [left: string, loop: string, right: string];
@@ -85,32 +86,37 @@ export class MainProcessResult extends React.Component<
     };
   }
 
+  // will be called after the component is displayed
   componentDidMount() {
     const requestOptions = {
       method: "POST",
       headers: { "Content-Type": "application/xml" },
       body: this.props.postBody,
     };
-    console.log("Making post to:");
-    console.log(this.props.miner);
+    // Create URL for API call
     const apiURL: string = window.location.href + "api/v1/" + this.props.miner;
 
+    // fetch, if success update state to trigger re-render
     fetch(apiURL, requestOptions)
       .then((response) => response.json())
       .then((data) => this.handleFetch(data))
       .catch((error) => {
+        console.log("An error occured");
+        console.log(error);
         this.setState({
           responseError: error.toString(),
           response: null,
           cyRef: null,
         });
+        console.log(this.state.responseError);
         console.log(
           "There was an error fetching from the API. Made request to: " + apiURL
         );
       });
   }
 
-  // Perform type casting and parse graph
+  // Perform type casting from API response and parse graph
+  // update state when done
   handleFetch(responseJSON: any): void {
     if (
       this.props.miner === "alphaminer" ||
@@ -121,8 +127,10 @@ export class MainProcessResult extends React.Component<
       let tracecount: Array<TraceCountLine> = responseJSON.traceCount;
       let ams: AlphaminerSets = responseJSON.alphaminersets;
 
+      // alphaplusminer additionally returns Array<LoopWithNeighbour>
       if (this.props.miner === "alphaplusminer") {
-        let loopsWNeighbours: Array<LoopWithNeighbour> = responseJSON.loopsWithNeighbours;
+        let loopsWNeighbours: Array<LoopWithNeighbour> =
+          responseJSON.loopsWithNeighbours;
 
         this.setState({
           responseError: "",
@@ -131,11 +139,10 @@ export class MainProcessResult extends React.Component<
             traceCount: tracecount,
             alphaminersets: ams,
             footprintmatrix: fpm,
-            loopsWithNeighbours:  loopsWNeighbours,
+            loopsWithNeighbours: loopsWNeighbours,
           },
           cyRef: null,
         });
-        console.log(this.state.response);
       } else {
         this.setState({
           responseError: "",
@@ -144,12 +151,12 @@ export class MainProcessResult extends React.Component<
             traceCount: tracecount,
             alphaminersets: ams,
             footprintmatrix: fpm,
-          },  
+          },
           cyRef: null,
         });
-        console.log(this.state.response);
       }
     } else if (this.props.miner == "regionminer") {
+      // Not implemented yet
     }
   }
 
@@ -157,7 +164,7 @@ export class MainProcessResult extends React.Component<
     const { response, responseError } = this.state;
 
     // Loading animation...
-    if (response === null) {
+    if (response === null && responseError === "") {
       return (
         <div
           style={{ width: "100%", display: "flex", justifyContent: "center" }}
@@ -220,7 +227,7 @@ export class MainProcessResult extends React.Component<
             </Grid>
 
             <Grid item xs={10}>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1}}>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                 Alpha miner sets
               </Typography>
               {this.displayAlphaMinerSets()}
@@ -232,17 +239,25 @@ export class MainProcessResult extends React.Component<
     // Error message
     else {
       return (
-        <div style={{ display: "flex", justifyContent: "center" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginTop: "20px",
+            marginBottom: "10px",
+          }}
+        >
           <Alert severity="error">
             <AlertTitle>Error</AlertTitle>
             An error occured while trying to fetch data from the API:{" "}
-            {responseError}
+            {this.state.responseError}
           </Alert>
         </div>
       );
     }
   }
 
+  // Handle for 'Reset View' button
   handleResetCy = () => {
     if (this.state.cyRef !== null) {
       this.state.cyRef.reset();
@@ -251,6 +266,7 @@ export class MainProcessResult extends React.Component<
     }
   };
 
+  // Handle for 'Save as JSON'
   handleSaveJSON = () => {
     if (this.state.cyRef !== null) {
       var json = this.state.cyRef.json();
@@ -264,6 +280,7 @@ export class MainProcessResult extends React.Component<
     }
   };
 
+  // Handle for 'Save as PNG'
   handleSavePNG = () => {
     if (this.state.cyRef !== null) {
       const options: cytoscape.ExportBlobOptions = {
@@ -291,25 +308,34 @@ export class MainProcessResult extends React.Component<
           <TableHead>
             <TableRow>
               <TableCell></TableCell>
-              {fpm.row.map((field) => (
-                <TableCell align="right">{field}</TableCell>
-              ))}
+              {
+                // Fill in values in left-most column
+                fpm.row.map((field) => (
+                  <TableCell align="right">{field}</TableCell>
+                ))
+              }
             </TableRow>
           </TableHead>
           <TableBody>
-            {fpm.fields.map((line, index) => (
-              <TableRow
-                key={fpm.row[index]}
-                sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-              >
-                <TableCell component="th" scope="row">
-                  {fpm.row[index]}
-                </TableCell>
-                {line.map((field) => (
-                  <TableCell align="right">{field}</TableCell>
-                ))}
-              </TableRow>
-            ))}
+            {
+              /* Dynamically create all required Rows and fill with values */
+              fpm.fields.map((line, index) => (
+                /* Fill in top field for each row */
+                <TableRow
+                  key={fpm.row[index]}
+                  sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
+                >
+                  {/* Fill in top field for each row */}
+                  <TableCell component="th" scope="row">
+                    {fpm.row[index]}
+                  </TableCell>
+                  {line.map((field) => (
+                    // fill in values for row
+                    <TableCell align="right">{field}</TableCell>
+                  ))}
+                </TableRow>
+              ))
+            }
           </TableBody>
         </Table>
       </TableContainer>
@@ -322,7 +348,7 @@ export class MainProcessResult extends React.Component<
       console.log("traceCount is undefined");
       return null;
     }
-
+    // separate traces and counts for the PieChart
     var traces: string[] = [];
     var counts: number[] = [];
 
@@ -407,16 +433,18 @@ export class MainProcessResult extends React.Component<
     );
   }
 
+  // Returns the Alpha Miner sets
   displayAlphaMinerSets() {
     const x = this.state.response;
 
     if (this.isAlphaPlusMinerResponse(x)) {
-      return (AlphaMinerSetsAccordion(x.alphaminersets, x.loopsWithNeighbours));
+      return AlphaMinerSetsAccordion(x.alphaminersets, x.loopsWithNeighbours);
     } else if (x !== null) {
-      return (AlphaMinerSetsAccordion(x.alphaminersets));
+      return AlphaMinerSetsAccordion(x.alphaminersets);
     }
   }
 
+  // check if APIResponse is AlphaMinerReponse, because Typescript has some very poor language design
   isAlphaPlusMinerResponse(x: APIResponse): x is AlphaPlusMinerResponse {
     return (x as AlphaPlusMinerResponse).loopsWithNeighbours !== undefined;
   }
