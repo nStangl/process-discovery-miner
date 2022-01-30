@@ -9,6 +9,7 @@ import TestData
 import qualified Data.Set as Set
 import IOHelper.XESReader
 import Data.Bifunctor ( Bifunctor(bimap) )
+import Data.List (nub)
 import qualified Miner.AlphaPlusMiner as AP
 
 -- Type alias for convinient check by Eq (equality)
@@ -134,9 +135,55 @@ spec = do
                 AP.containsL1LAtStart [["a","b"],["a","a","b"]] `shouldBe` True
             it "detect loop at end" $ do
                 AP.containsL1LAtEnd [["a","b","c"],["a","b","c","c"]] `shouldBe` True
-        describe "Solve EventLogs" $ do
-            it "Solve loops length 2" $ do
-                snd (AP.alphaPlusMiner getLog8) `shouldBe` getLog8L1LWithNeighbours
+        describe "Test loops of length 1" $ do
+            it "Test filtering of possible loops 1" $ do
+                AP.filterL1L [["a","b","c"], ["a","b","b","c"]] [("a","b","c")] 
+                `shouldBe` []
+            it "Test filtering of possible loops 2" $ do
+                AP.filterL1L [["a","a"], ["a","b","a"], ["a","b","b","a"]] [("a","b","a")] 
+                `shouldBe` []
+            
+            it "Removing Loops from Trace 1" $ do
+                AP.removeL1LFromTrace ["a","b","c"] [("a","b","c")]
+                `shouldBe` ["a","c"]
+            it "Removing Loops from Trace 2" $ do
+                AP.removeL1LFromTrace ["a","b"] [("a","b","c")]
+                `shouldBe` ["a","b"]
+            it "Removing Loops from Trace 3" $ do
+                AP.removeL1LFromTrace ["a","b"] [("a","b","c"), ("a","b","d")]
+                `shouldBe` ["a","b"]
+
+            it "L7 - EventLog" $ do
+                fst (AP.preprocess getLog7) `shouldBe` getLog7Preprocessed 
+            it "L7 - Found loops" $ do
+                snd (AP.preprocess getLog7) `shouldBe` getLog7L1LWithNeighbours
+            
+            -- With L8 there should be no loops of length 1
+            it "L8 - EventLog" $ do
+                fst (AP.preprocess getLog8) `shouldBe` getLog8Preprocessed
+            it "L8 - Found no loops" $ do
+                snd (AP.preprocess getLog8) `shouldBe` []
+        
+            -- Postprocessing can only be Tested on the CytoGraph
+            it "Test postprocessing - contains loop node" $ do
+                log7PreprocessNode `shouldBe` True
+            it "Test postprocessing - contains loop transitions" $ do
+                log7PreprocessEdges `shouldBe` True
+
+        describe "Test Loops of length 2" $ do
+            describe "Testing new order relations" $ do
+                it "New order relations - ordSymmetric 1" $ do
+                    AP.ordSymmetric [["a","b","a"]] `shouldBe` [("a","b")]
+                it "New order relations - ordSymmetric 2" $ do
+                    AP.ordSymmetric [["a","b","a","b"]] `shouldBe` [("a","b"), ("b","a")]
+                it "New order relations - ordSymmetricSwap 1" $ do         
+                    AP.ordSymmetricSwap [["a","b","a","b"]] 
+                    `shouldBe` 
+                    nub (AP.ordSymmetric [["a","b","a","b"]])
+
+            it "Solve Log 8" $ do
+                fst (AP.alphaPlusMiner getLog8) `shouldBe` getLog8AlphaPlusResult
+
 
 toFilePath :: String -> FilePath
 toFilePath s = "./test/logs/" ++ s ++ ".xes"
@@ -176,3 +223,18 @@ logs = map toFilePath logs'
 
 allLogsPresent :: IO Bool
 allLogsPresent = foldr (&&) True <$> mapM doesFileExist logs
+
+log7PreprocessEdges :: Bool
+log7PreprocessEdges = and [ s `elem` cytoedges'| s<-shouldBeEdges]
+    where
+        (ts, l1ls) = AP.alphaPlusMiner getLog7
+        cytoedges = edges $ AP.exportToCytoGraph' getLog7 ts l1ls
+        cytoedges' = [ (source e, target e) | e<-cytoedges ]
+        shouldBeEdges = map (\x -> (source x, target x)) $ snd getLog7PostProcessCytoElem
+        
+log7PreprocessNode :: Bool
+log7PreprocessNode = containsNode
+    where
+        (ts, l1ls) = AP.alphaPlusMiner getLog7
+        graph = AP.exportToCytoGraph' getLog7 ts l1ls
+        containsNode = fst getLog7PostProcessCytoElem `elem` nodes graph

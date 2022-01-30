@@ -118,6 +118,12 @@ getLog7xL = [(["a"], ["b"]), (["a"], ["c"]), (["b"], ["c"])]
 getLog7yL :: [Transition]
 getLog7yL = [(["a"], ["b"]), (["a"], ["c"]), (["b"], ["c"])]
 
+getLog7PostProcessCytoElem :: (CytoNode, [CytoEdge])
+getLog7PostProcessCytoElem = (cytonode, cytoedges)
+  where 
+    cytonode = CytoNode "b" "rectangle"
+    cytoedges = [CytoEdge "" "p1" "b" "triangle", CytoEdge "" "b" "p1" "triangle"]
+
 {----- billinstances ------}
 getBill :: EventLog
 getBill = [["write bill", "print bill", "deliver bill"]]
@@ -217,6 +223,9 @@ getLog8Preprocessed = getLog8
 
 getLog8L1LWithNeighbours :: [(Activity, Activity, Activity)]
 getLog8L1LWithNeighbours = []
+
+getLog8AlphaPlusResult :: [Transition]
+getLog8AlphaPlusResult = [(["start"],["a"]),(["a","c"],["b"]),(["b"],["d","c"]),(["d"],["end"])]
 
 {----- Log 9 ------}
 getLog9 :: EventLog
