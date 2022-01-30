@@ -17,7 +17,7 @@ export default function AlphaMinerSetsAccordion(
 ) {
 
   const isLoops: boolean = (loopsWNeigh === null || loopsWNeigh === undefined) ? false : true;
-
+  const isLoopsEmpty: boolean = (isLoops === false || loopsWNeigh!.length < 1) ? true : false;
   const { tl, ti, to, xl, yl } = ams;
 
   // Description for the corresponding sets in KaTeX
@@ -145,9 +145,15 @@ export default function AlphaMinerSetsAccordion(
             </Typography>
           </AccordionSummary>
           <AccordionDetails>
-            <Typography>
-              {loopsWNeigh?.map((l) => prettyPrintLoop(l)).join(", ")}
-            </Typography>
+            {isLoopsEmpty ? (
+              <Typography>
+                No loops detected
+              </Typography>
+            ) : (
+              <Typography>
+                {loopsWNeigh?.map((l) => prettyPrintLoop(l)).join(", ")}
+              </Typography>
+            )}
           </AccordionDetails>
         </Accordion>
       ) : (

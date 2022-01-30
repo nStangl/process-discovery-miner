@@ -21,9 +21,10 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { saveAs } from "file-saver";
 import AlphaMinerSetsAccordion from "./AlphaMinerSetAccordion";
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
 
 type ProcessResultProps = {
-  postBody: string;
+  postBodyPromise: Promise<string>;
   miner: string;
 };
 
@@ -88,31 +89,39 @@ export class MainProcessResult extends React.Component<
 
   // will be called after the component is displayed
   componentDidMount() {
-    const requestOptions = {
-      method: "POST",
-      headers: { "Content-Type": "application/xml" },
-      body: this.props.postBody,
-    };
-    // Create URL for API call
-    const apiURL: string = window.location.href + "api/v1/" + this.props.miner;
 
-    // fetch, if success update state to trigger re-render
-    fetch(apiURL, requestOptions)
-      .then((response) => response.json())
-      .then((data) => this.handleFetch(data))
-      .catch((error) => {
-        console.log("An error occured");
-        console.log(error);
-        this.setState({
-          responseError: error.toString(),
-          response: null,
-          cyRef: null,
+    const readFileAndPostToAPI = async () => {
+      const content = await this.props.postBodyPromise;
+
+      const requestOptions = {
+        method: "POST",
+        headers: { "Content-Type": "application/xml" },
+        body: content,
+      };
+      // Create URL for API call
+      const apiURL: string = window.location.href + "api/v1/" + this.props.miner;
+  
+      // fetch, if success update state to trigger re-render
+      fetch(apiURL, requestOptions)
+        .then((response) => response.json())
+        .then((data) => this.handleFetch(data))
+        .catch((error) => {
+          console.log("An error occured");
+          console.log(error);
+          this.setState({
+            responseError: error.toString(),
+            response: null,
+            cyRef: null,
+          });
+          console.log(this.state.responseError);
+          console.log(
+            "There was an error fetching from the API. Made request to: " + apiURL
+          );
         });
-        console.log(this.state.responseError);
-        console.log(
-          "There was an error fetching from the API. Made request to: " + apiURL
-        );
-      });
+    };
+
+    readFileAndPostToAPI();
+    
   }
 
   // Perform type casting from API response and parse graph
@@ -191,6 +200,7 @@ export class MainProcessResult extends React.Component<
           </Box>
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             <ButtonGroup variant="outlined" aria-label="outlined button group">
+              <Button onClick={this.handleUploadNewLog} startIcon={<ArrowBackIosIcon/>}>Upload new Log</Button>
               <Button onClick={this.handleResetCy}>Reset View</Button>
               <Button onClick={this.handleSavePNG}>Save as PNG</Button>
               <Button onClick={this.handleSaveJSON}>Save as JSON</Button>
@@ -255,6 +265,10 @@ export class MainProcessResult extends React.Component<
         </div>
       );
     }
+  }
+
+  handleUploadNewLog = () => {
+    window.location.reload();
   }
 
   // Handle for 'Reset View' button

@@ -8,7 +8,6 @@ import { MainProcessResult } from "./MainProcessResult";
 type MainUploadProps = {};
 type MainUploadState = {
   files: FileObject[];
-  dataString: string;
   miner: string;
 };
 
@@ -24,16 +23,9 @@ export default class MainUpload extends React.Component<
 
     this.state = {
       files: [],
-      dataString: "",
       miner: "alphaplusminer",
     };
   }
-
-  componentDidMount() {}
-
-  componentWillUnmount() {}
-
-  static regxRemoveMD: RegExp = /^data:.*?\/.*?;base64,/;
 
   handleAdd = (newFiles: FileObject[]) => {
     this.setState({ files: [newFiles[0]] });
@@ -43,6 +35,7 @@ export default class MainUpload extends React.Component<
     this.setState({ files: this.state.files.filter((f) => f !== deleted) });
   };
 
+  // Options are exclusive and one has to be selected at all times.
   handleMinerSelect = (
     event: React.MouseEvent<HTMLElement>,
     newMiner: string
@@ -50,11 +43,7 @@ export default class MainUpload extends React.Component<
     if (newMiner !== null) this.setState({ miner: newMiner });
   };
 
-  getOtherMiner(miner: string): string {
-    if (miner === "alphaplusminer") return "alphaminer";
-    else return "alphaplusminer";
-  }
-
+  // Render the buttons and the upload window
   render() {
     if (this.state.files === undefined || this.state.files.length < 1) {
       return (
@@ -106,41 +95,12 @@ export default class MainUpload extends React.Component<
       );
     } else {
       // A File has been uploaded
-
-      let dataString = "";
-      try {
-        if (typeof this.state.files[0].data === "string") {
-          if (this.state.files[0].data.match(MainUpload.regxRemoveMD)) {
-            dataString = this.state.files[0].data.replace(
-              MainUpload.regxRemoveMD,
-              ""
-            );
-          }
-          dataString = this.b64_to_utf8(dataString);
-        }
-      } catch (e) {
-        console.log(
-          "An error has occured while trying to decode the file. Check if the content of your file has UTF-8 encoding!"
-        );
-        dataString = "";
-      }
-
-      if (dataString === "") {
-        // TODO Handle error by giving proper message!
-      }
-
+      const postBodyPromise: Promise<string> = this.state.files[0].file.text();
+      
       return (
-        <MainProcessResult postBody={dataString} miner={this.state.miner} />
+        <MainProcessResult postBodyPromise={postBodyPromise} miner={this.state.miner} />
       );
+      
     }
-  }
-
-  /*
-    Encodes a Base64 string to UTF-8 string. Unicode characters are escaped and should work.
-    Taken from: https://developer.mozilla.org/en-US/docs/Glossary/Base64#solution_1_%E2%80%93_escaping_the_string_before_encoding_it
-    Note: It does use the deprecated escape() function, but it should be more performant than a regex approach as proposed in above link.
-    */
-  b64_to_utf8(str: string): string {
-    return decodeURIComponent(escape(window.atob(str)));
   }
 }
