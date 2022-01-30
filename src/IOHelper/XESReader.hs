@@ -2,8 +2,6 @@ module IOHelper.XESReader
     ( readXESFile,
       readXES,
       countTraces,
-      readTest,
-      testFunc
     )
     where
 
@@ -24,7 +22,6 @@ import Data.List (sortBy, group, sort, nub)
 import Data.Function (on)
 import Miner.AlphaMiner (xL, yL)
 
-
 readXESFileError :: String
 readXESFileError = "An error occured trying to read the file! This might be caused by a wrong encoding."
 
@@ -40,9 +37,7 @@ readXESFile path = do
         Left _  -> return $ Left readXESFileError
         Right s -> do
             let logOrErr = readXES s
-            return $ case logOrErr of
-                Left err -> Left err
-                Right elog -> Right elog
+            return logOrErr
 
 -- | Read the XES files contens from a XmlSource
 readXES :: XmlSource s => s-> Either String EventLog
@@ -51,38 +46,8 @@ readXES raw =
         Nothing -> Left readXESError
         Just doc -> do
             let traces = findTraces doc
-            -- TODO: Replace?
-            if True
-                then Right $ map ((mapMaybe getActivityFromEvent . mapMaybe filterEventForLifecycle) . findEvents) traces
-                else Right $ map (mapMaybe getActivityFromEvent . findEvents) traces
-
--- | TODO: remove
-readTest :: String -> IO (Bool, [String])
-readTest path = do
-    s <- readFile path
-    case parseXMLDoc s of
-        Nothing -> return (False, ["error"])
-        Just doc -> return $ isLifecycleExtension doc
-
-testFunc :: String -> IO ()
-testFunc s = do
-    elog <- readXESFile s
-    case elog of 
-        Left _ -> print ""
-        Right l -> do
-            print "EventLog (nubbed)"
-            print $ nub l
-            print "xL"
-            print $ xL l
-            print "yl"
-            print $ yL $ xL l
-
-
-
--- | Checks if the lifecycle extension is being set
-isLifecycleExtension :: Element -> (Bool, [String])
-isLifecycleExtension _ = do
-    (False, [])
+            Right $ map ((mapMaybe getActivityFromEvent . mapMaybe filterEventForLifecycle) . findEvents) traces
+            --Right $ map (mapMaybe getActivityFromEvent . findEvents) traces
 
 -- | Takes the first (any) event and checks if the timestamp attribute is set
 isTimestampSet :: Element -> Bool
@@ -92,11 +57,11 @@ isTimestampSet event = case line event of
     where
         line = filterChild (\x -> qName (elName x) == "date" && attrVal (head (elAttribs x)) == "time:timestamp")
 
--- | Given the <log..> element, find all it's child <trace..> elements
+-- | Given the <log..> element, find all its child <trace..> elements
 findTraces :: Element -> [Element]
 findTraces = filterChildren (\e -> qName (elName e) == "trace")
 
--- | Given a <trace..> element, find all it's child <event..> elements
+-- | Given a <trace..> element, find all its child <event..> elements
 findEvents :: Element -> [Element]
 findEvents = filterChildren (\e -> qName (elName e) == "event")
 
@@ -118,18 +83,11 @@ filterEventForLifecycle eve = case line eve of
     where
         line = filterChild (\e -> qName (elName e) == "string" && attrVal (head (elAttribs e)) == "lifecycle:transition")
 
--- | TODO: Leave in or replace?
-getEventLines :: Element -> [(String, String, String)]
-getEventLines event = do
-    let typef = qName . elName
-    let keyf = attrVal . head . elAttribs
-    let valuef e = attrVal (elAttribs e !! 1)
-
-    fmap (\x -> (typef x, keyf x, valuef x)) (elChildren event)
-
+-- | Count Traces for trace count statistics
 countTraces :: EventLog -> [(Int, Trace)]
 countTraces = sorted . frequency
 
+-- | Counts the Frequency of elements in a list
 frequency :: Ord a => [a] -> [(Int,a)]
 frequency =  map (length &&& head) . group . sort
 

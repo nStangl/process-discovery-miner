@@ -17,6 +17,7 @@ getFaviconR = do cacheSeconds $ 60 * 60 * 12 -- cache for 12 hours
                  return $ TypedContent "image/x-icon"
                         $ toContent $(embedFile "config/favicon_pickaxe.ico")
 
+-- | Not sure what this is. Something realted to Yesod.
 getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain
                     $ toContent $(embedFile "config/robots.txt")

@@ -17,9 +17,6 @@ export default function AlphaMinerSetsAccordion(
 ) {
 
   const isLoops: boolean = (loopsWNeigh === null || loopsWNeigh === undefined) ? false : true;
-    
-  console.log(loopsWNeigh);
-  console.log(isLoops);
 
   const { tl, ti, to, xl, yl } = ams;
 

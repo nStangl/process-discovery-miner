@@ -2,8 +2,7 @@
 
 -- Type definitions to conveniently represent types and (partial) results of the miner.
 -- Also contains ToJSON and FromJSON instances.
--- Note that the FromJSON instances are not actually used anywhere, 
--- but defined if needed.
+-- Note that the FromJSON instances are not actually used anywhere, but defined if needed.
 
 module Types
      where

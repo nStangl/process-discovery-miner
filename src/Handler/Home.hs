@@ -9,6 +9,12 @@ import Import
 import Yesod.Form.Bootstrap3 (BootstrapFormLayout (..), renderBootstrap3)
 import Text.Julius (RawJS (..))
 
+-- | Handler for GET /
+getHomeR :: Handler Html
+getHomeR = do
+    defaultLayout $ do
+        sendFile "text/html" "static/dist/index.html"
+
 -- Define our data that will be used for creating the form.
 data FileForm = FileForm
     { fileInfo :: FileInfo
@@ -20,12 +26,6 @@ getAltHomeR = do
     defaultLayout $ do
         setTitle "Welcome to test Page"
         addScript $ StaticR dist_bundle_js
-
-getHomeR :: Handler Html
-getHomeR = do
-    defaultLayout $ do
-        sendFile "text/html" "static/dist/index.html"
-
 
 sampleForm :: Form FileForm
 sampleForm = renderBootstrap3 BootstrapBasicForm $ FileForm
