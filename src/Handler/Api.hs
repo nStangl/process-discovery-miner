@@ -15,8 +15,9 @@ import Types
 import Miner.AlphaMiner
     ( alphaMiner, alphaminersets, createFpMatrix, expToCytoGraph )
 import qualified Miner.AlphaPlusMiner as AP
-import IOHelper.XESReader ( readXES, countTraces )
+import IOHelper.XESReader ( readXES )
 import Data.List ( nub )
+import LogStats ( countTraces, logStats ) 
 
 -- | Handler for POST to /api/v1/alphaminer
 postAlphaminerV1R :: Handler Value
@@ -28,19 +29,29 @@ postAlphaminerV1R =  do
         --invalidArgs [pack err]
         Right elog -> do
             let elog' = nub elog
-            let (traceCount, ams, fpm) = basicAlphaMinerVals elog elog'
+            let (traceCount, ams, fpm, traceStat, eventStat) = basicAlphaMinerVals elog elog'
             
             let cytoGraph = expToCytoGraph elog' (alphaMiner elog')
-            return $ alphaminerResp cytoGraph traceCount ams fpm
+            
+            return $ Object $ alphaMinerResponse cytoGraph traceCount ams fpm traceStat eventStat
 
--- | Pack all values from the alphaminer into a (JSON) Value
-alphaminerResp :: CytoGraph -> [(Int, Trace)] -> AlphaMinerSets -> FootprintMatrix -> Value
-alphaminerResp g tc ams fpmatrix = Object $ HMS.fromList [
-            ("graph", toJSON g),
-            ("traceCount", toJSON tc),
-            ("alphaminersets", toJSON ams),
-            ("footprintmatrix", toJSON fpmatrix)
-            ]   
+-- | Pack all required values into a HashMap
+alphaMinerResponse :: CytoGraph -> [(Int, Trace)] -> AlphaMinerSets -> FootprintMatrix -> Statistics -> Statistics -> HMS.HashMap Text Value
+alphaMinerResponse graph traceCount ams fpmatrix traceStat eventStat 
+    = HMS.fromList [
+        ("graph", toJSON graph),
+        ("traceCount", toJSON traceCount),
+        ("alphaminersets", toJSON ams),
+        ("footprintmatrix", toJSON fpmatrix),
+        ("traceStatistics", toJSON traceStat),
+        ("eventStatistics", toJSON eventStat)
+        ]
+
+-- | Pack all alpha plus miner values into a hashmap
+alphaPlusMinerResponse :: CytoGraph -> [(Activity, Activity, Activity)] -> [(Int, Trace)] -> AlphaMinerSets -> FootprintMatrix -> Statistics -> Statistics -> HMS.HashMap Text Value
+alphaPlusMinerResponse g l1lps tct ams fpm tS eS 
+    = HMS.insert "loopsWithNeighbours" (toJSON l1lps) hm
+    where hm = alphaMinerResponse g tct ams fpm tS eS
 
 -- | Handler for POST to /api/v1/alphaplusminer
 postAlphaplusminerV1R :: Handler Value
@@ -51,25 +62,22 @@ postAlphaplusminerV1R = do
             --invalidArgs [pack err]
         Right elog -> do
             let elog' = nub elog
-            let (traceCount, ams, fpm) = basicAlphaMinerVals elog elog'
+            let (traceCount, ams, fpm, traceStat, eventStat) = basicAlphaMinerVals elog elog'
 
             let (ts,l1ls) = AP.alphaPlusMiner elog'
             let cytoGraph = AP.exportToCytoGraph' elog' ts l1ls
 
-            return $ alphaplusminerResp cytoGraph l1ls traceCount ams fpm
+            let response = alphaPlusMinerResponse cytoGraph l1ls traceCount ams fpm traceStat eventStat
+            return $ Object response
 
-basicAlphaMinerVals :: EventLog -> EventLog -> ([(Int, Trace)], AlphaMinerSets, FootprintMatrix)
-basicAlphaMinerVals elog elog' = (countTraces elog, alphaminersets elog', createFpMatrix elog')
-
--- | Pack all values from the alphplusaminer into a (JSON) Value
-alphaplusminerResp :: CytoGraph -> [(Activity,Activity,Activity)] -> [(Int, Trace)] -> AlphaMinerSets -> FootprintMatrix -> Value
-alphaplusminerResp g l1ls tc ams fpmatrix = Object $ HMS.fromList [
-            ("graph", toJSON g),
-            ("loopsWithNeighbours", toJSON l1ls),
-            ("traceCount", toJSON tc),
-            ("alphaminersets", toJSON ams),
-            ("footprintmatrix", toJSON fpmatrix)
-            ]   
+basicAlphaMinerVals :: EventLog -> EventLog -> ([(Int, Trace)], AlphaMinerSets, FootprintMatrix, Statistics, Statistics)
+basicAlphaMinerVals elog elog' = let (traceStat, eventStat) = logStats elog elog'
+                                 in (countTraces elog, 
+                                     alphaminersets elog', 
+                                     createFpMatrix elog',
+                                     traceStat,
+                                     eventStat
+                                     )
 
 -- | Parses the body of a POST request and tries to read it's XES content.
 -- Returns EventLog if success

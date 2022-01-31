@@ -1,7 +1,6 @@
 module IOHelper.XESReader
     ( readXESFile,
-      readXES,
-      countTraces,
+      readXES
     )
     where
 
@@ -9,7 +8,6 @@ import Text.XML.Light
     ( parseXMLDoc,
       filterChild,
       filterChildren,
-      elChildren,
       Attr(attrVal),
       Element(elName, elAttribs),
       QName(qName) )
@@ -17,10 +15,6 @@ import Data.Maybe ( mapMaybe )
 import Types
 import Text.XML.Light.Lexer (XmlSource)
 import Control.Exception ( try, SomeException )
-import Control.Arrow ( Arrow((&&&)) )
-import Data.List (sortBy, group, sort, nub)
-import Data.Function (on)
-import Miner.AlphaMiner (xL, yL)
 
 readXESFileError :: String
 readXESFileError = "An error occured trying to read the file! This might be caused by a wrong encoding."
@@ -83,13 +77,3 @@ filterEventForLifecycle eve = case line eve of
     where
         line = filterChild (\e -> qName (elName e) == "string" && attrVal (head (elAttribs e)) == "lifecycle:transition")
 
--- | Count Traces for trace count statistics
-countTraces :: EventLog -> [(Int, Trace)]
-countTraces = sorted . frequency
-
--- | Counts the Frequency of elements in a list
-frequency :: Ord a => [a] -> [(Int,a)]
-frequency =  map (length &&& head) . group . sort
-
-sorted :: Ord a => [(Int, a)] -> [(Int,a)]
-sorted = sortBy (flip compare `on` fst)

@@ -110,3 +110,27 @@ instance FromJSON FootprintMatrix where
         xss <- fpm .: "fields"
         return $ FootprintMatrix d rs xss
     parseJSON _ = empty
+
+data Statistics = Statistics {
+    totalOccurences :: Int,
+    distinctOccurences :: Int,
+    minLength :: Int,
+    maxLength :: Int,
+    avgLengthAll :: Float,
+    avgLengthDist :: Float,
+    mostFrequent :: String,
+    leastFrequent :: String
+} deriving (Show, Eq)
+
+instance ToJSON Statistics where
+    toJSON (Statistics toc dioc minl maxl avglall avgldis mf lf)
+        = object [
+            "totalOccurences"    .= toc,
+            "distinctOccurences" .= dioc,
+            "minLength"          .= minl,
+            "maxLength"          .= maxl,
+            "avgLengthAll"       .= avglall,
+            "avgLengthDistinct"  .= avgldis,
+            "mostFrequent"       .= mf,
+            "leastFrequent"      .= lf
+        ]
