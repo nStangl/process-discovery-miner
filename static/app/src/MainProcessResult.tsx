@@ -6,6 +6,7 @@ import SpinStretch from "react-cssfx-loading/lib/SpinStretch";
 import Alert from "@mui/material/Alert";
 import AlertTitle from "@mui/material/AlertTitle";
 import Box from "@mui/material/Box";
+import Container from "@mui/material/Container";
 import Table from "@mui/material/Table";
 import TableBody from "@mui/material/TableBody";
 import TableCell from "@mui/material/TableCell";
@@ -236,13 +237,13 @@ export class MainProcessResult extends React.Component<
               {this.displayTraceCountPieChart(this.state.response?.traceCount!)}
             </Grid>
 
-            <Grid item xs={10}>
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                Alpha miner sets
-              </Typography>
-              {this.displayAlphaMinerSets()}
-            </Grid>
           </Grid>
+          <Container sx={{maxWidth: "960px", marginTop: "20px", marginBottom: "20px"}}>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              Alpha miner sets
+            </Typography>
+            {this.displayAlphaMinerSets()}
+          </Container>
         </Box>
       );
     }
