@@ -274,7 +274,7 @@ export class MainProcessResult extends React.Component<
             />
           </Container>
 
-          <Container sx = {{ marginY: "20px", maxWidth: "960px", justifyContent: "center" }}>
+          <Container sx = {{ marginY: "20px", maxWidth: "960px" }}>
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Footprint matrix
             </Typography>
@@ -375,7 +375,7 @@ export class MainProcessResult extends React.Component<
               {
                 // Fill in values in left-most column
                 fpm.row.map((field) => (
-                  <TableCell align="right">{field}</TableCell>
+                  <TableCell align="center">{field}</TableCell>
                 ))
               }
             </TableRow>
@@ -390,12 +390,12 @@ export class MainProcessResult extends React.Component<
                   sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
                 >
                   {/* Fill in top field for each row */}
-                  <TableCell component="th" scope="row">
+                  <TableCell component="th" scope="row" align="center">
                     {fpm.row[index]}
                   </TableCell>
                   {line.map((field) => (
                     // fill in values for row
-                    <TableCell align="right">{field}</TableCell>
+                    <TableCell align="center">{field}</TableCell>
                   ))}
                 </TableRow>
               ))
