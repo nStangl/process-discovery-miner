@@ -1,6 +1,3 @@
--- By default this file is used by `parseRoutesFile` in Foundation.hs
--- Syntax for this file here: https://www.yesodweb.com/book/routing-and-handlers
-
 /static StaticR Static appStatic
 
 /favicon.ico FaviconR GET
@@ -9,11 +6,6 @@
 /manifest.json ManifestR GET
 
 / HomeR GET
-/althome AltHomeR GET
-
-/comments CommentR POST
-
-/testminer TestminerR GET
 
 /api/v1/alphaminer AlphaminerV1R POST
 /api/v1/alphaplusminer AlphaplusminerV1R POST

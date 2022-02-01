@@ -5,7 +5,7 @@ module LogStats (
   countActivities
 ) where
 
-import Types
+import Types ( Activity, EventLog, Statistics(..), Trace )
 import Data.List (sortBy, group, sort, maximumBy, nub)
 import Data.Function ( on )
 import Control.Arrow ( Arrow((&&&)) )
@@ -49,6 +49,7 @@ eventStatistic elog elog' =
             mostFrequent       = snd (maximumBy (compare `on` fst) (frequency eventss)),
             leastFrequent      = snd (minimumBy (compare `on` fst) (frequency eventss))
             }
+            
 -- | Transform Trace into string
 combineTrace :: Trace -> String
 combineTrace [] = "<>"
