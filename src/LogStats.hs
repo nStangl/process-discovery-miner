@@ -1,7 +1,8 @@
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 module LogStats (
   logStats,
-  countTraces
+  countTraces,
+  countActivities
 ) where
 
 import Types
@@ -65,6 +66,11 @@ truncate' n x = fromIntegral (floor (x * t)) / t
 -- | Count Traces for trace count statistics
 countTraces :: EventLog -> [(Int, Trace)]
 countTraces = sorted . frequency
+
+-- | Count Activities for Pie chart
+countActivities :: EventLog -> [(Int, Activity)]
+countActivities elog = sorted $ frequency elog'
+    where elog' = concat elog
 
 -- | Counts the Frequency of elements in a list
 frequency :: Ord a => [a] -> [(Int,a)]

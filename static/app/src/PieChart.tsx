@@ -16,16 +16,17 @@ type ColorRangeInfo = {
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-export function PieChart(labels: string[], data: number[]) {
+export function PieChart(labels: string[], data: number[], colorStart: number, colorEnd: number, endAsStart: boolean) {
   let n = labels.length;
   // Change colorScale method and colorRangeInfo parameters
   // to change the color palette
   const colorScale = d3.interpolateRdYlBu;
   const colorRangeInfo = {
-    colorStart: 0.4,
-    colorEnd: 1,
-    useEndAsStart: true,
+    colorStart: colorStart,
+    colorEnd: colorEnd,
+    useEndAsStart: endAsStart,
   };
+  var labels2 = labels.map((label) => chunkSubstr(label, 60));
 
   // generate colors
   var COLORS = interpolateColors(n, colorScale, colorRangeInfo);
@@ -40,8 +41,10 @@ export function PieChart(labels: string[], data: number[]) {
       },
     ],
   };
+  const chartOptions = {
+  }
 
-  return <Pie data={chartData} />;
+  return <Pie data={chartData} options={chartOptions} />;
 }
 
 function calculatePoint(
@@ -73,4 +76,16 @@ function interpolateColors(
   }
 
   return colorArray;
+}
+
+// Taken from: https://stackoverflow.com/questions/7033639/split-large-string-in-n-size-chunks-in-javascript
+function chunkSubstr(str: string, size: number): string[] {
+  const numChunks = Math.ceil(str.length / size)
+  const chunks = new Array(numChunks)
+
+  for (let i = 0, o = 0; i < numChunks; ++i, o += size) {
+    chunks[i] = str.substr(o, size)
+  }
+
+  return chunks
 }

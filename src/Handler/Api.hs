@@ -17,7 +17,7 @@ import Miner.AlphaMiner
 import qualified Miner.AlphaPlusMiner as AP
 import IOHelper.XESReader ( readXES )
 import Data.List ( nub )
-import LogStats ( countTraces, logStats ) 
+import LogStats ( countTraces, logStats, countActivities ) 
 
 -- | Handler for POST to /api/v1/alphaminer
 postAlphaminerV1R :: Handler Value
@@ -29,18 +29,19 @@ postAlphaminerV1R =  do
         --invalidArgs [pack err]
         Right elog -> do
             let elog' = nub elog
-            let (traceCount, ams, fpm, traceStat, eventStat) = basicAlphaMinerVals elog elog'
+            let (traceCount, activityCount, ams, fpm, traceStat, eventStat) = basicAlphaMinerVals elog elog'
             
             let cytoGraph = expToCytoGraph elog' (alphaMiner elog')
             
-            return $ Object $ alphaMinerResponse cytoGraph traceCount ams fpm traceStat eventStat
+            return $ Object $ alphaMinerResponse cytoGraph traceCount activityCount ams fpm traceStat eventStat
 
 -- | Pack all required values into a HashMap
-alphaMinerResponse :: CytoGraph -> [(Int, Trace)] -> AlphaMinerSets -> FootprintMatrix -> Statistics -> Statistics -> HMS.HashMap Text Value
-alphaMinerResponse graph traceCount ams fpmatrix traceStat eventStat 
+alphaMinerResponse :: CytoGraph -> [(Int, Trace)] -> [(Int, Activity)] -> AlphaMinerSets -> FootprintMatrix -> Statistics -> Statistics -> HMS.HashMap Text Value
+alphaMinerResponse graph traceCount activCount ams fpmatrix traceStat eventStat 
     = HMS.fromList [
         ("graph", toJSON graph),
         ("traceCount", toJSON traceCount),
+        ("eventCount", toJSON activCount),
         ("alphaminersets", toJSON ams),
         ("footprintmatrix", toJSON fpmatrix),
         ("traceStatistics", toJSON traceStat),
@@ -48,10 +49,10 @@ alphaMinerResponse graph traceCount ams fpmatrix traceStat eventStat
         ]
 
 -- | Pack all alpha plus miner values into a hashmap
-alphaPlusMinerResponse :: CytoGraph -> [(Activity, Activity, Activity)] -> [(Int, Trace)] -> AlphaMinerSets -> FootprintMatrix -> Statistics -> Statistics -> HMS.HashMap Text Value
-alphaPlusMinerResponse g l1lps tct ams fpm tS eS 
+alphaPlusMinerResponse :: CytoGraph -> [(Activity, Activity, Activity)] -> [(Int, Trace)] -> [(Int, Activity)] -> AlphaMinerSets -> FootprintMatrix -> Statistics -> Statistics -> HMS.HashMap Text Value
+alphaPlusMinerResponse g l1lps tct activCount ams fpm tS eS 
     = HMS.insert "loopsWithNeighbours" (toJSON l1lps) hm
-    where hm = alphaMinerResponse g tct ams fpm tS eS
+    where hm = alphaMinerResponse g tct activCount ams fpm tS eS
 
 -- | Handler for POST to /api/v1/alphaplusminer
 postAlphaplusminerV1R :: Handler Value
@@ -62,17 +63,18 @@ postAlphaplusminerV1R = do
             --invalidArgs [pack err]
         Right elog -> do
             let elog' = nub elog
-            let (traceCount, ams, fpm, traceStat, eventStat) = basicAlphaMinerVals elog elog'
+            let (traceCount, activityCount, ams, fpm, traceStat, eventStat) = basicAlphaMinerVals elog elog'
 
             let (ts,l1ls) = AP.alphaPlusMiner elog'
             let cytoGraph = AP.exportToCytoGraph' elog' ts l1ls
 
-            let response = alphaPlusMinerResponse cytoGraph l1ls traceCount ams fpm traceStat eventStat
+            let response = alphaPlusMinerResponse cytoGraph l1ls traceCount activityCount ams fpm traceStat eventStat
             return $ Object response
 
-basicAlphaMinerVals :: EventLog -> EventLog -> ([(Int, Trace)], AlphaMinerSets, FootprintMatrix, Statistics, Statistics)
+basicAlphaMinerVals :: EventLog -> EventLog -> ([(Int, Trace)], [(Int, Activity)], AlphaMinerSets, FootprintMatrix, Statistics, Statistics)
 basicAlphaMinerVals elog elog' = let (traceStat, eventStat) = logStats elog elog'
-                                 in (countTraces elog, 
+                                 in (countTraces elog,
+                                     countActivities elog,
                                      alphaminersets elog', 
                                      createFpMatrix elog',
                                      traceStat,

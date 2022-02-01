@@ -22,7 +22,8 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import { saveAs } from "file-saver";
 import AlphaMinerSetsAccordion from "./AlphaMinerSetAccordion";
-import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import Statistics from "./Statistics";
 
 type ProcessResultProps = {
   postBodyPromise: Promise<string>;
@@ -41,8 +42,11 @@ type APIResponse = AlphaMinerResponse | AlphaPlusMinerResponse | null;
 type AlphaMinerResponse = {
   graph: cytoscape.ElementDefinition[];
   traceCount: Array<TraceCountLine>;
+  eventCount: Array<EventCountLine>;
   alphaminersets: AlphaminerSets;
   footprintmatrix: FootprintMatrix;
+  traceStatistics: Statistics;
+  eventStatistics: Statistics;
 };
 
 // extend AlphaMinerReponse by additional field
@@ -59,8 +63,21 @@ type FootprintMatrix = {
   fields: Array<Array<string>>;
 };
 
+export type Statistics = {
+  distinctOccurences: number;
+  totalOccurences: number;
+  avgLengthAll: number;
+  maxLength: number;
+  avgLengthDistinct: number;
+  minLength: number;
+  mostFrequent: string;
+  leastFrequent: string;
+};
+
 // This is a tuple which is defined as a array with 2 elements
 type TraceCountLine = [count: number, trace: Array<string>];
+
+type EventCountLine = [count: number, event: string];
 
 export type LoopWithNeighbour = [left: string, loop: string, right: string];
 
@@ -90,7 +107,6 @@ export class MainProcessResult extends React.Component<
 
   // will be called after the component is displayed
   componentDidMount() {
-
     const readFileAndPostToAPI = async () => {
       const content = await this.props.postBodyPromise;
 
@@ -100,8 +116,9 @@ export class MainProcessResult extends React.Component<
         body: content,
       };
       // Create URL for API call
-      const apiURL: string = window.location.href + "api/v1/" + this.props.miner;
-  
+      const apiURL: string =
+        window.location.href + "api/v1/" + this.props.miner;
+
       // fetch, if success update state to trigger re-render
       fetch(apiURL, requestOptions)
         .then((response) => response.json())
@@ -116,13 +133,13 @@ export class MainProcessResult extends React.Component<
           });
           console.log(this.state.responseError);
           console.log(
-            "There was an error fetching from the API. Made request to: " + apiURL
+            "There was an error fetching from the API. Made request to: " +
+              apiURL
           );
         });
     };
 
     readFileAndPostToAPI();
-    
   }
 
   // Perform type casting from API response and parse graph
@@ -135,7 +152,10 @@ export class MainProcessResult extends React.Component<
       let fpm: FootprintMatrix = responseJSON.footprintmatrix;
       let graph = responseJSON.graph;
       let tracecount: Array<TraceCountLine> = responseJSON.traceCount;
+      let eventcount: Array<EventCountLine> = responseJSON.eventCount;
       let ams: AlphaminerSets = responseJSON.alphaminersets;
+      let traceStats: Statistics = responseJSON.traceStatistics;
+      let eventStats: Statistics = responseJSON.eventStatistics;
 
       // alphaplusminer additionally returns Array<LoopWithNeighbour>
       if (this.props.miner === "alphaplusminer") {
@@ -147,9 +167,12 @@ export class MainProcessResult extends React.Component<
           response: {
             graph: CytoscapeComponent.normalizeElements(graph),
             traceCount: tracecount,
+            eventCount: eventcount,
             alphaminersets: ams,
             footprintmatrix: fpm,
             loopsWithNeighbours: loopsWNeighbours,
+            traceStatistics: traceStats,
+            eventStatistics: eventStats,
           },
           cyRef: null,
         });
@@ -159,8 +182,11 @@ export class MainProcessResult extends React.Component<
           response: {
             graph: CytoscapeComponent.normalizeElements(graph),
             traceCount: tracecount,
+            eventCount: eventcount,
             alphaminersets: ams,
             footprintmatrix: fpm,
+            traceStatistics: traceStats,
+            eventStatistics: eventStats,
           },
           cyRef: null,
         });
@@ -186,7 +212,7 @@ export class MainProcessResult extends React.Component<
             alignItems="center"
             justifyContent="center"
           >
-            <SpinStretch color="#002f6c" width="90%" height="90%" />
+            <SpinStretch color="#002f6c" width="80%" height="80%" />
           </Box>
         </div>
       );
@@ -195,13 +221,18 @@ export class MainProcessResult extends React.Component<
     // Display result
     if (response !== null && responseError === "") {
       return (
-        <Box sx={{ flexGrow: 1, marginTop: "20px" }}>
+        <Box sx={{ flexGrow: 1, marginTop: "20px", justifyContent: "center"}}>
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             {this.displayCytoGraph(this.state.response?.graph!)}
           </Box>
           <Box sx={{ display: "flex", justifyContent: "center" }}>
             <ButtonGroup variant="outlined" aria-label="outlined button group">
-              <Button onClick={this.handleUploadNewLog} startIcon={<ArrowBackIosIcon/>}>Upload new Log</Button>
+              <Button
+                onClick={this.handleUploadNewLog}
+                startIcon={<ArrowBackIosIcon />}
+              >
+                Upload new Log
+              </Button>
               <Button onClick={this.handleResetCy}>Reset View</Button>
               <Button onClick={this.handleSavePNG}>Save as PNG</Button>
               <Button onClick={this.handleSaveJSON}>Save as JSON</Button>
@@ -210,35 +241,53 @@ export class MainProcessResult extends React.Component<
 
           <Grid
             container
-            rowSpacing={3}
+            rowSpacing={1}
             columnSpacing={1}
             justifyContent="space-evenly"
             alignItems="center"
           >
-            <Grid item xs={12} md={12} lg={12} justifyContent="center"></Grid>
 
             <Grid item xs={12}>
               <Divider flexItem sx={{ borderBottomWidth: 3 }} />
             </Grid>
 
-            <Grid item xs="auto">
-              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-                Footprint matrix
-              </Typography>
-              {this.displayFootprintmatrix(
-                this.state.response?.footprintmatrix
-              )}
-            </Grid>
-
-            <Grid item xs="auto">
+            <Grid item md={3}>
               <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
                 Trace Occurences
               </Typography>
               {this.displayTraceCountPieChart(this.state.response?.traceCount!)}
             </Grid>
-
+            <Grid item md={3}>
+              <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+                Event Occurences
+              </Typography>
+              {this.displayEventCountPieChart(this.state.response?.eventCount!)}
+            </Grid>
           </Grid>
-          <Container sx={{maxWidth: "960px", marginTop: "20px", marginBottom: "20px"}}>
+          <Container sx={{ width: "auto", marginY: "20px" }}>
+            <Statistics isTrace stats={this.state.response?.traceStatistics!} />
+          </Container>
+          <Container sx={{ maxWidth: "960px", marginY: "20px" }}>
+            <Statistics
+              isTrace={false}
+              stats={this.state.response?.eventStatistics!}
+            />
+          </Container>
+
+          <Container sx = {{ marginY: "20px", maxWidth: "960px", justifyContent: "center" }}>
+            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+              Footprint matrix
+            </Typography>
+            <Box>
+              {this.displayFootprintmatrix(
+                this.state.response?.footprintmatrix
+              )}
+            </Box>
+          </Container>
+
+          <Container
+            sx={{ minWidth: "800px", width: "auto", maxWidth: "960px", marginTop: "20px", marginBottom: "20px" }}
+          >
             <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
               Alpha miner sets
             </Typography>
@@ -270,7 +319,7 @@ export class MainProcessResult extends React.Component<
 
   handleUploadNewLog = () => {
     window.location.reload();
-  }
+  };
 
   // Handle for 'Reset View' button
   handleResetCy = () => {
@@ -319,7 +368,7 @@ export class MainProcessResult extends React.Component<
     }
     return (
       <TableContainer component={Paper}>
-        <Table sx={{ minWidth: "auto" }} aria-label="simple table">
+        <Table sx={{ minWidth: "auto"}} aria-label="simple table">
           <TableHead>
             <TableRow>
               <TableCell></TableCell>
@@ -367,12 +416,30 @@ export class MainProcessResult extends React.Component<
     var traces: string[] = [];
     var counts: number[] = [];
 
-    tc.forEach((line) => {
-      traces.push("<" + line[1].join(",") + ">");
-      counts.push(line[0]);
+    tc.forEach(([count, trace]) => {
+      traces.push("<" + trace.join(",") + ">");
+      counts.push(count);
     });
 
-    return PieChart(traces, counts);
+    return PieChart(traces, counts, 0.4, 1, true);
+  }
+
+  displayEventCountPieChart(eventlines: Array<EventCountLine> | undefined) {
+    if (eventlines === undefined) {
+      console.log("eventCount is undefined");
+      return null;
+    }
+
+    // separate counts and events for PieChart
+    var counts: number[] = [];
+    var events: string[] = [];
+
+    eventlines.forEach(([count, event]) => {
+      counts.push(count);
+      events.push(event);
+    });
+
+    return PieChart(events, counts, 0, 0.6, true);
   }
 
   // Default cytoscape layout if no other is specified
@@ -463,4 +530,15 @@ export class MainProcessResult extends React.Component<
   isAlphaPlusMinerResponse(x: APIResponse): x is AlphaPlusMinerResponse {
     return (x as AlphaPlusMinerResponse).loopsWithNeighbours !== undefined;
   }
+
+  static testStatistics: Statistics = {
+    distinctOccurences: 4,
+    totalOccurences: 8,
+    avgLengthAll: 3.375,
+    maxLength: 6,
+    avgLengthDistinct: 3.75,
+    minLength: 2,
+    mostFrequent: "<a,b,c>",
+    leastFrequent: "<a,b,b,b,b,c>",
+  };
 }
