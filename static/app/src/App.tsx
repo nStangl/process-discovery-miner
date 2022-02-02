@@ -31,9 +31,7 @@ function Copyright() {
   return (
     <Typography variant="body2" color="text.secondary" align="center">
       {"Copyright © "}
-      <Link color="inherit" href="https://www.youtube.com/watch?v=dQw4w9WgXcQ">
-        Bachelor internship implementation
-      </Link>{" "}
+        Bachelor internship implementation{" "}
       {new Date().getFullYear()}.
     </Typography>
   );

@@ -1,6 +1,6 @@
 # process-mining
 
-Repository for my bachelor internshipiImplementation of process discovery algorithms. Implementing a full stack process discovery miner inlcuding an Alpha-Miner.
+Repository for my bachelor internship Implementation of process discovery algorithms. Implementing a full stack process discovery miner inlcuding an Alpha-Miner and a Alpha+-Miner.
 
 # Overview
 
@@ -107,9 +107,9 @@ If you want to run the server, execute:
 stack exec process-miner
 ```
 The host, port and other settings are located in /config/settings.yml.
-If you want to run it as a detached process (in the background):
+If you want to run it as a detached process (in the background, for Linux):
 ```
-stack exec process-miner > logfile.txt &
+nohup stack exec process-miner &
 ```
 If you merely want to test quick changes, you can also do:
 ```

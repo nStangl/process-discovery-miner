@@ -107,8 +107,8 @@ function InfoDialog() {
           </Typography>
           <Divider />
           <Typography gutterBottom>
-            The backend currently supports files with a maximum size up to 50 MB.
-            This could easily be changed in the settings.
+            The backend currently supports files with a maximum size up to 50
+            MB. This could easily be changed in the settings.
           </Typography>
         </DialogContent>
       </BootstrapDialog>
@@ -155,9 +155,13 @@ function AboutDialog() {
             If you are unsure which mining alogrithm to choose, take the Alpha+
             Miner.
             <br />
+            The Alpha Miner is unable to handle short loops, which the Alpha+ Miner can handle.
+            <br />
+            <br />
             The implementation of the Alpha Miner is based on [1].
             <br />
             The implementation of the Alpha+ Miner is mainly based on [2].
+            <br />
             <br />
             This project was made for my Bachelor internship 'Implementation of
             Process Mining Algorithms: Transformative Business Knowledge'.
